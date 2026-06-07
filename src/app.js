@@ -8,6 +8,8 @@ const requestContext = require('./middlewares/requestContext.middleware');
 const errorHandler = require('./middlewares/errorHandler.middleware');
 const routes = require('./routes/index');
 const logger = require('./config/logger');
+const { bootstrap } = require('./bootstrap');
+const { isVercelRuntime } = require('./utils/env');
 
 const app = express();
 
@@ -33,6 +35,17 @@ app.use(rateLimit({
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
 }));
+
+if (isVercelRuntime()) {
+  app.use(async (req, res, next) => {
+    try {
+      await bootstrap({ startJobs: false });
+      next();
+    } catch (err) {
+      next(err);
+    }
+  });
+}
 
 app.use(requestContext);
 
