@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const attachmentSchema = new mongoose.Schema({
   url: String, path: String, originalName: String, mimeType: String, size: Number,
@@ -23,4 +23,4 @@ noticeSchema.index({ audienceType: 1 });
 noticeSchema.index({ classIds: 1 });
 noticeSchema.index({ isDeleted: 1 });
 
-module.exports = mongoose.model('Notice', noticeSchema);
+export default mongoose.model('Notice', noticeSchema);

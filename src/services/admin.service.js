@@ -1,13 +1,13 @@
-const User = require('../models/User.model');
-const Class = require('../models/Class.model');
-const Notice = require('../models/Notice.model');
-const Assignment = require('../models/Assignment.model');
-const Timetable = require('../models/Timetable.model');
-const ReportCard = require('../models/ReportCard.model');
-const Result = require('../models/Result.model');
-const Notification = require('../models/Notification.model');
-const ActivityLog = require('../models/ActivityLog.model');
-const { parsePagination, buildPaginationMeta } = require('../utils/paginationHelper');
+import User from '../models/User.model.js';
+import Class from '../models/Class.model.js';
+import Notice from '../models/Notice.model.js';
+import Assignment from '../models/Assignment.model.js';
+import Timetable from '../models/Timetable.model.js';
+import ReportCard from '../models/ReportCard.model.js';
+import Result from '../models/Result.model.js';
+import Notification from '../models/Notification.model.js';
+import ActivityLog from '../models/ActivityLog.model.js';
+import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
 
 const getOverviewMetrics = async () => {
   const now = new Date();
@@ -87,4 +87,5 @@ const listActivityLogs = async (query) => {
   return { logs, pagination: buildPaginationMeta(total, page, limit) };
 };
 
-module.exports = { getOverviewMetrics, listActivityLogs };
+export { getOverviewMetrics, listActivityLogs };
+export default { getOverviewMetrics, listActivityLogs };

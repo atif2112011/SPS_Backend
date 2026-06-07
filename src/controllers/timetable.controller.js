@@ -1,6 +1,6 @@
-const timetableService = require('../services/timetable.service');
-const { sendSuccess } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
+import timetableService from '../services/timetable.service.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
 
 /**
  * POST /timetables
@@ -40,4 +40,5 @@ const deleteTimetable = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Timetable deleted successfully' });
 });
 
-module.exports = { createTimetable, getClassTimetable, updateTimetable, deleteTimetable };
+export { createTimetable, getClassTimetable, updateTimetable, deleteTimetable };
+export default { createTimetable, getClassTimetable, updateTimetable, deleteTimetable };

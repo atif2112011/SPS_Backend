@@ -1,10 +1,11 @@
-const { Router } = require('express');
-const reportCardController = require('../controllers/reportCard.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { authorizeRole } = require('../middlewares/rbac.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { handleUpload, uploadFiles } = require('../middlewares/upload.middleware');
-const { createReportCardSchema, updateReportCardSchema } = require('../validators/reportCard.validator');
+import express from 'express';
+const { Router } = express;
+import reportCardController from '../controllers/reportCard.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { handleUpload, uploadFiles } from '../middlewares/upload.middleware.js';
+import { createReportCardSchema, updateReportCardSchema } from '../validators/reportCard.validator.js';
 
 const router = Router();
 
@@ -22,4 +23,4 @@ router.patch('/:id', authorizeRole('admin', 'teacher'), handleUpload(uploadFiles
 // DELETE /report-cards/:id — admin, teacher (own)
 router.delete('/:id', authorizeRole('admin', 'teacher'), reportCardController.deleteReportCard);
 
-module.exports = router;
+export default router;

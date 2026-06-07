@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId');
 
@@ -26,4 +26,5 @@ const updateTimetableSchema = z.object({
   schedule: z.array(dayScheduleSchema).min(1),
 });
 
-module.exports = { createTimetableSchema, updateTimetableSchema };
+export { createTimetableSchema, updateTimetableSchema };
+export default { createTimetableSchema, updateTimetableSchema };

@@ -1,6 +1,6 @@
-const { verifyAccessToken } = require('../utils/tokenUtils');
-const User = require('../models/User.model');
-const ERROR_CODES = require('../constants/errorCodes');
+import { verifyAccessToken } from '../utils/tokenUtils.js';
+import User from '../models/User.model.js';
+import ERROR_CODES from '../constants/errorCodes.js';
 
 /**
  * Authentication middleware — use standard async/await with try/catch
@@ -48,4 +48,5 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-module.exports = { authenticate };
+export { authenticate };
+export default { authenticate };

@@ -1,9 +1,9 @@
-const User = require('../models/User.model');
-const StudentProfile = require('../models/StudentProfile.model');
-const TeacherProfile = require('../models/TeacherProfile.model');
-const { hashPassword } = require('../utils/hashUtils');
-const { parsePagination, buildPaginationMeta } = require('../utils/paginationHelper');
-const ERROR_CODES = require('../constants/errorCodes');
+import User from '../models/User.model.js';
+import StudentProfile from '../models/StudentProfile.model.js';
+import TeacherProfile from '../models/TeacherProfile.model.js';
+import { hashPassword } from '../utils/hashUtils.js';
+import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import ERROR_CODES from '../constants/errorCodes.js';
 
 /** Helper: throw a structured app error */
 const appError = (message, statusCode, errorCode) => {
@@ -202,4 +202,5 @@ const unblockUser = async (userId) => {
   await User.findByIdAndUpdate(userId, { status: 'active' });
 };
 
-module.exports = { createStudent, createTeacher, listUsers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser };
+export { createStudent, createTeacher, listUsers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser };
+export default { createStudent, createTeacher, listUsers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser };

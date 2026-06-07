@@ -1,5 +1,5 @@
-const logger = require('../config/logger');
-const ERROR_CODES = require('../constants/errorCodes');
+import logger from '../config/logger.js';
+import ERROR_CODES from '../constants/errorCodes.js';
 
 const errorHandler = (err, req, res, next) => {
   const traceId = req.traceId;
@@ -66,4 +66,4 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-module.exports = errorHandler;
+export default errorHandler;

@@ -1,10 +1,11 @@
-require('dotenv').config();
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import dotenv from 'dotenv';
+dotenv.config();
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import User from './src/models/User.model.js';
 
 async function seed() {
   await mongoose.connect(process.env.MONGODB_URI);
-  const User = require('./src/models/User.model');
 
   const usernames = ['admin_test', 'teacher_test', 'student_test', 'blocked_test'];
   await User.deleteMany({ username: { $in: usernames } });

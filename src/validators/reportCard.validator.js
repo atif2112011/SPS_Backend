@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId');
 
@@ -25,4 +25,5 @@ const updateReportCardSchema = z.object({
   remarks: z.string().max(1000).optional(),
 });
 
-module.exports = { createReportCardSchema, updateReportCardSchema };
+export { createReportCardSchema, updateReportCardSchema };
+export default { createReportCardSchema, updateReportCardSchema };

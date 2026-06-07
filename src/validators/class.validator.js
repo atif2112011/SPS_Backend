@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId');
 
@@ -33,4 +33,5 @@ const listClassQuerySchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).optional(),
 });
 
-module.exports = { createClassSchema, updateClassSchema, assignTeacherSchema, manageMembersSchema, listClassQuerySchema };
+export { createClassSchema, updateClassSchema, assignTeacherSchema, manageMembersSchema, listClassQuerySchema };
+export default { createClassSchema, updateClassSchema, assignTeacherSchema, manageMembersSchema, listClassQuerySchema };

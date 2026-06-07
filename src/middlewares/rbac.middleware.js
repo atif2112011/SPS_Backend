@@ -1,4 +1,4 @@
-const ERROR_CODES = require('../constants/errorCodes');
+import ERROR_CODES from '../constants/errorCodes.js';
 
 const authorizeRole = (...roles) => (req, res, next) => {
   if (!req.user || !roles.includes(req.user.role)) {
@@ -26,4 +26,5 @@ const authorizeOwner = (paramKey = 'id') => (req, res, next) => {
   next();
 };
 
-module.exports = { authorizeRole, authorizeOwner };
+export { authorizeRole, authorizeOwner };
+export default { authorizeRole, authorizeOwner };

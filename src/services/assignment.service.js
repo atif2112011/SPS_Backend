@@ -1,12 +1,12 @@
-const Assignment = require('../models/Assignment.model');
-const TeacherProfile = require('../models/TeacherProfile.model');
-const StudentProfile = require('../models/StudentProfile.model');
-const { uploadFile } = require('../utils/firebaseStorage');
-const { parsePagination, buildPaginationMeta } = require('../utils/paginationHelper');
-const ERROR_CODES = require('../constants/errorCodes');
-const logActivity = require('../utils/activityLogger');
-const eventBus = require('../events/eventBus');
-const EVENTS = require('../constants/events');
+import Assignment from '../models/Assignment.model.js';
+import TeacherProfile from '../models/TeacherProfile.model.js';
+import StudentProfile from '../models/StudentProfile.model.js';
+import { uploadFile } from '../utils/firebaseStorage.js';
+import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import ERROR_CODES from '../constants/errorCodes.js';
+import logActivity from '../utils/activityLogger.js';
+import eventBus from '../events/eventBus.js';
+import EVENTS from '../constants/events.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -165,4 +165,5 @@ const deleteAssignment = async (assignmentId, actor) => {
   });
 };
 
-module.exports = { createAssignment, listAssignments, getAssignmentById, updateAssignment, deleteAssignment };
+export { createAssignment, listAssignments, getAssignmentById, updateAssignment, deleteAssignment };
+export default { createAssignment, listAssignments, getAssignmentById, updateAssignment, deleteAssignment };

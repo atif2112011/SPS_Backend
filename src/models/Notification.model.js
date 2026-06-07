@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const notificationSchema = new mongoose.Schema({
   recipientUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -21,4 +21,4 @@ notificationSchema.index({ recipientUserId: 1, isRead: 1, createdAt: -1 });
 notificationSchema.index({ type: 1 });
 notificationSchema.index({ entityType: 1, entityId: 1 });
 
-module.exports = mongoose.model('Notification', notificationSchema);
+export default mongoose.model('Notification', notificationSchema);

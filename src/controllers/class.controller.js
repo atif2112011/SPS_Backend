@@ -1,7 +1,7 @@
-const classService = require('../services/class.service');
-const logActivity = require('../utils/activityLogger');
-const { sendSuccess } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
+import classService from '../services/class.service.js';
+import logActivity from '../utils/activityLogger.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
 
 /**
  * POST /classes
@@ -110,4 +110,5 @@ const getClassStudents = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Class students fetched', data: students });
 });
 
-module.exports = { createClass, listClasses, getClassById, updateClass, deleteClass, manageMembers, assignTeacher, getClassStudents };
+export { createClass, listClasses, getClassById, updateClass, deleteClass, manageMembers, assignTeacher, getClassStudents };
+export default { createClass, listClasses, getClassById, updateClass, deleteClass, manageMembers, assignTeacher, getClassStudents };

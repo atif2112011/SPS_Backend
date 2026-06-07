@@ -4,4 +4,4 @@ const ROLES = {
   STUDENT: 'student',
 };
 
-module.exports = ROLES;
+export default ROLES;

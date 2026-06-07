@@ -1,9 +1,9 @@
-const connectDB = require('./config/db');
-const logger = require('./config/logger');
-const { initFirebase } = require('./config/firebase');
-const registerNotificationListeners = require('./events/notification.listeners');
-const { startAssignmentReminderJobs } = require('./jobs/assignmentReminder.job');
-const { isVercelRuntime } = require('./utils/env');
+import connectDB from './config/db.js';
+import logger from './config/logger.js';
+import { initFirebase } from './config/firebase.js';
+import registerNotificationListeners from './events/notification.listeners.js';
+import { startAssignmentReminderJobs } from './jobs/assignmentReminder.job.js';
+import { isVercelRuntime } from './utils/env.js';
 
 let bootPromise;
 let listenersRegistered = false;
@@ -34,4 +34,5 @@ const bootstrap = async ({ startJobs = !isVercelRuntime() } = {}) => {
   }
 };
 
-module.exports = { bootstrap };
+export { bootstrap };
+export default { bootstrap };

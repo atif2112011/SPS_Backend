@@ -1,8 +1,9 @@
-const { Router } = require('express');
-const authController = require('../controllers/auth.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { loginSchema, changePasswordSchema } = require('../validators/auth.validator');
+import express from 'express';
+const { Router } = express;
+import authController from '../controllers/auth.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { loginSchema, changePasswordSchema } from '../validators/auth.validator.js';
 
 const router = Router();
 
@@ -13,4 +14,4 @@ router.post('/logout', authController.logout);
 router.get('/me', authenticate, authController.getMe);
 router.patch('/change-password', authenticate, validate(changePasswordSchema), authController.changePassword);
 
-module.exports = router;
+export default router;

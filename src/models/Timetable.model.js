@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const periodSchema = new mongoose.Schema({
   startTime: String,
@@ -21,4 +21,4 @@ const timetableSchema = new mongoose.Schema({
 
 // classId unique index is already defined on the field itself above
 
-module.exports = mongoose.model('Timetable', timetableSchema);
+export default mongoose.model('Timetable', timetableSchema);

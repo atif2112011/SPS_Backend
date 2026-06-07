@@ -1,10 +1,11 @@
-const { Router } = require('express');
-const assignmentController = require('../controllers/assignment.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { authorizeRole } = require('../middlewares/rbac.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { handleUpload, uploadImages } = require('../middlewares/upload.middleware');
-const { createAssignmentSchema, updateAssignmentSchema, listAssignmentsQuerySchema } = require('../validators/assignment.validator');
+import express from 'express';
+const { Router } = express;
+import assignmentController from '../controllers/assignment.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { handleUpload, uploadImages } from '../middlewares/upload.middleware.js';
+import { createAssignmentSchema, updateAssignmentSchema, listAssignmentsQuerySchema } from '../validators/assignment.validator.js';
 
 const router = Router();
 
@@ -25,4 +26,4 @@ router.patch('/:id', authorizeRole('admin', 'teacher'), handleUpload(uploadImage
 // DELETE /assignments/:id — admin, teacher (own only)
 router.delete('/:id', authorizeRole('admin', 'teacher'), assignmentController.deleteAssignment);
 
-module.exports = router;
+export default router;

@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId');
 
@@ -20,8 +20,5 @@ const notificationIdParamSchema = z.object({
   id: objectIdSchema,
 });
 
-module.exports = {
-  registerDeviceSchema,
-  listNotificationsQuerySchema,
-  notificationIdParamSchema,
-};
+export { registerDeviceSchema, listNotificationsQuerySchema, notificationIdParamSchema };
+export default { registerDeviceSchema, listNotificationsQuerySchema, notificationIdParamSchema };

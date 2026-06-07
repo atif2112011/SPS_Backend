@@ -1,5 +1,5 @@
-const ActivityLog = require('../models/ActivityLog.model');
-const logger = require('../config/logger');
+import ActivityLog from '../models/ActivityLog.model.js';
+import logger from '../config/logger.js';
 
 /**
  * Log an auditable action to the ActivityLog collection.
@@ -23,4 +23,4 @@ const logActivity = async ({
   }
 };
 
-module.exports = logActivity;
+export default logActivity;

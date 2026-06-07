@@ -1,8 +1,8 @@
-const User = require('../models/User.model');
-const RefreshToken = require('../models/RefreshToken.model');
-const { hashPassword, comparePassword } = require('../utils/hashUtils');
-const { signAccessToken, signRefreshToken, verifyRefreshToken, hashToken } = require('../utils/tokenUtils');
-const logger = require('../config/logger');
+import User from '../models/User.model.js';
+import RefreshToken from '../models/RefreshToken.model.js';
+import { hashPassword, comparePassword } from '../utils/hashUtils.js';
+import { signAccessToken, signRefreshToken, verifyRefreshToken, hashToken } from '../utils/tokenUtils.js';
+import logger from '../config/logger.js';
 
 const login = async (username, password, deviceInfo) => {
   const user = await User.findOne({ username }).select('+passwordHash');
@@ -151,4 +151,5 @@ const changePassword = async (userId, currentPassword, newPassword) => {
   logger.info('Password changed, all sessions revoked', { userId });
 };
 
-module.exports = { login, refresh, logout, getMe, changePassword };
+export { login, refresh, logout, getMe, changePassword };
+export default { login, refresh, logout, getMe, changePassword };

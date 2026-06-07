@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const subjectMarkSchema = new mongoose.Schema({
   subject: String, marksObtained: Number, totalMarks: Number, grade: String,
@@ -22,4 +22,4 @@ resultSchema.index({ classId: 1 });
 resultSchema.index({ examName: 1, academicYear: 1 });
 resultSchema.index({ isDeleted: 1 });
 
-module.exports = mongoose.model('Result', resultSchema);
+export default mongoose.model('Result', resultSchema);

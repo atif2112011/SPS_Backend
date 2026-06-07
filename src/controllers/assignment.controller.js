@@ -1,6 +1,6 @@
-const assignmentService = require('../services/assignment.service');
-const { sendSuccess } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
+import assignmentService from '../services/assignment.service.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
 
 /**
  * POST /assignments
@@ -50,4 +50,5 @@ const deleteAssignment = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Assignment deleted successfully' });
 });
 
-module.exports = { createAssignment, listAssignments, getAssignmentById, updateAssignment, deleteAssignment };
+export { createAssignment, listAssignments, getAssignmentById, updateAssignment, deleteAssignment };
+export default { createAssignment, listAssignments, getAssignmentById, updateAssignment, deleteAssignment };

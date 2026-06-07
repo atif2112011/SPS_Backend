@@ -1,10 +1,10 @@
-const Timetable = require('../models/Timetable.model');
-const TeacherProfile = require('../models/TeacherProfile.model');
-const StudentProfile = require('../models/StudentProfile.model');
-const ERROR_CODES = require('../constants/errorCodes');
-const logActivity = require('../utils/activityLogger');
-const eventBus = require('../events/eventBus');
-const EVENTS = require('../constants/events');
+import Timetable from '../models/Timetable.model.js';
+import TeacherProfile from '../models/TeacherProfile.model.js';
+import StudentProfile from '../models/StudentProfile.model.js';
+import ERROR_CODES from '../constants/errorCodes.js';
+import logActivity from '../utils/activityLogger.js';
+import eventBus from '../events/eventBus.js';
+import EVENTS from '../constants/events.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -120,4 +120,5 @@ const deleteTimetable = async (timetableId, actor) => {
   });
 };
 
-module.exports = { createTimetable, getClassTimetable, updateTimetable, deleteTimetable };
+export { createTimetable, getClassTimetable, updateTimetable, deleteTimetable };
+export default { createTimetable, getClassTimetable, updateTimetable, deleteTimetable };

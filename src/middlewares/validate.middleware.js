@@ -1,5 +1,5 @@
-const { sendError } = require('../utils/responseHelper');
-const ERROR_CODES = require('../constants/errorCodes');
+import { sendError } from '../utils/responseHelper.js';
+import ERROR_CODES from '../constants/errorCodes.js';
 
 const validate = (schema, source = 'body') => (req, res, next) => {
   const result = schema.safeParse(req[source]);
@@ -16,8 +16,14 @@ const validate = (schema, source = 'body') => (req, res, next) => {
       traceId: req.traceId,
     });
   }
-  req[source] = result.data;
+  if (source === 'query' || source === 'params') {
+    const target = req[source];
+    Object.keys(target).forEach((key) => delete target[key]);
+    Object.assign(target, result.data);
+  } else {
+    req[source] = result.data;
+  }
   next();
 };
 
-module.exports = validate;
+export default validate;

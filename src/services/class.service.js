@@ -1,9 +1,9 @@
-const Class = require('../models/Class.model');
-const User = require('../models/User.model');
-const StudentProfile = require('../models/StudentProfile.model');
-const TeacherProfile = require('../models/TeacherProfile.model');
-const { parsePagination, buildPaginationMeta } = require('../utils/paginationHelper');
-const ERROR_CODES = require('../constants/errorCodes');
+import Class from '../models/Class.model.js';
+import User from '../models/User.model.js';
+import StudentProfile from '../models/StudentProfile.model.js';
+import TeacherProfile from '../models/TeacherProfile.model.js';
+import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import ERROR_CODES from '../constants/errorCodes.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -169,11 +169,12 @@ const getClassStudents = async (classId) => {
   const students = await User.find({ _id: { $in: classDoc.studentIds }, status: { $ne: 'deleted' } })
     .select('-passwordHash');
 
-  const profiles = await require('../models/StudentProfile.model').find({ userId: { $in: classDoc.studentIds } });
+  const profiles = await StudentProfile.find({ userId: { $in: classDoc.studentIds } });
   const profileMap = {};
   profiles.forEach(p => { profileMap[p.userId.toString()] = p; });
 
   return students.map(s => ({ user: s, profile: profileMap[s._id.toString()] || null }));
 };
 
-module.exports = { createClass, listClasses, getClassById, updateClass, deleteClass, manageMembers, assignTeacher, getClassStudents };
+export { createClass, listClasses, getClassById, updateClass, deleteClass, manageMembers, assignTeacher, getClassStudents };
+export default { createClass, listClasses, getClassById, updateClass, deleteClass, manageMembers, assignTeacher, getClassStudents };

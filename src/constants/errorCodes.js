@@ -14,4 +14,4 @@ const ERROR_CODES = {
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 };
 
-module.exports = ERROR_CODES;
+export default ERROR_CODES;

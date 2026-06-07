@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const attachmentSchema = new mongoose.Schema({
   url: String, path: String, originalName: String, mimeType: String, size: Number,
@@ -25,4 +25,4 @@ reportCardSchema.index({ classId: 1 });
 reportCardSchema.index({ term: 1, academicYear: 1 });
 reportCardSchema.index({ isDeleted: 1 });
 
-module.exports = mongoose.model('ReportCard', reportCardSchema);
+export default mongoose.model('ReportCard', reportCardSchema);

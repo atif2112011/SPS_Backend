@@ -1,12 +1,12 @@
-const eventBus = require('./eventBus');
-const EVENTS = require('../constants/events');
-const Notice = require('../models/Notice.model');
-const Assignment = require('../models/Assignment.model');
-const Timetable = require('../models/Timetable.model');
-const ReportCard = require('../models/ReportCard.model');
-const Result = require('../models/Result.model');
-const notificationService = require('../services/notification.service');
-const logger = require('../config/logger');
+import eventBus from './eventBus.js';
+import EVENTS from '../constants/events.js';
+import Notice from '../models/Notice.model.js';
+import Assignment from '../models/Assignment.model.js';
+import Timetable from '../models/Timetable.model.js';
+import ReportCard from '../models/ReportCard.model.js';
+import Result from '../models/Result.model.js';
+import notificationService from '../services/notification.service.js';
+import logger from '../config/logger.js';
 
 let listenersRegistered = false;
 
@@ -113,4 +113,4 @@ const registerNotificationListeners = () => {
   });
 };
 
-module.exports = registerNotificationListeners;
+export default registerNotificationListeners;

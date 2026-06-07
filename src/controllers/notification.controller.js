@@ -1,6 +1,6 @@
-const notificationService = require('../services/notification.service');
-const { sendSuccess } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
+import notificationService from '../services/notification.service.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
 
 const registerDevice = asyncWrapper(async (req, res) => {
   const token = await notificationService.registerDevice(req.body, req.user);
@@ -22,9 +22,5 @@ const markAllRead = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'All notifications marked as read', data: result });
 });
 
-module.exports = {
-  registerDevice,
-  listNotifications,
-  markNotificationRead,
-  markAllRead,
-};
+export { registerDevice, listNotifications, markNotificationRead, markAllRead };
+export default { registerDevice, listNotifications, markNotificationRead, markAllRead };

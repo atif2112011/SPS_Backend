@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const studentProfileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
@@ -17,4 +17,4 @@ const studentProfileSchema = new mongoose.Schema({
 // admissionNo and userId already indexed via unique:true in schema definition
 studentProfileSchema.index({ classId: 1 });
 
-module.exports = mongoose.model('StudentProfile', studentProfileSchema);
+export default mongoose.model('StudentProfile', studentProfileSchema);

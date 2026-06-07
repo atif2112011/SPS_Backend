@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username is required').trim().toLowerCase(),
@@ -13,4 +13,5 @@ const changePasswordSchema = z.object({
     .max(64, 'New password too long'),
 });
 
-module.exports = { loginSchema, changePasswordSchema };
+export { loginSchema, changePasswordSchema };
+export default { loginSchema, changePasswordSchema };

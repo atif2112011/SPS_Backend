@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const attachmentSchema = new mongoose.Schema({
   url: String, path: String, originalName: String, mimeType: String, size: Number,
@@ -22,4 +22,4 @@ assignmentSchema.index({ deadline: 1 });
 assignmentSchema.index({ classIds: 1 });
 assignmentSchema.index({ isDeleted: 1 });
 
-module.exports = mongoose.model('Assignment', assignmentSchema);
+export default mongoose.model('Assignment', assignmentSchema);

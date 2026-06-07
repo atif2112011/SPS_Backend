@@ -1,7 +1,7 @@
-const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const { getStorage } = require('../config/firebase');
-const ERROR_CODES = require('../constants/errorCodes');
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import { getStorage } from '../config/firebase.js';
+import ERROR_CODES from '../constants/errorCodes.js';
 
 const sanitizeFilename = (name) => {
   const ext = path.extname(name);
@@ -28,4 +28,5 @@ const uploadFile = async (buffer, originalName, mimeType, folder) => {
   }
 };
 
-module.exports = { uploadFile };
+export { uploadFile };
+export default { uploadFile };

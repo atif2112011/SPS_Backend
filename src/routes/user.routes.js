@@ -1,9 +1,10 @@
-const { Router } = require('express');
-const userController = require('../controllers/user.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { authorizeRole } = require('../middlewares/rbac.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { createStudentSchema, createTeacherSchema } = require('../validators/user.validator');
+import express from 'express';
+const { Router } = express;
+import userController from '../controllers/user.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { createStudentSchema, createTeacherSchema } from '../validators/user.validator.js';
 
 const router = Router();
 
@@ -16,4 +17,4 @@ router.post('/students', validate(createStudentSchema), userController.createStu
 // POST /users/teachers
 router.post('/teachers', validate(createTeacherSchema), userController.createTeacher);
 
-module.exports = router;
+export default router;

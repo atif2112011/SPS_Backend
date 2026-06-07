@@ -1,9 +1,10 @@
-const { Router } = require('express');
-const classController = require('../controllers/class.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { authorizeRole } = require('../middlewares/rbac.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { createClassSchema, updateClassSchema, assignTeacherSchema, manageMembersSchema, listClassQuerySchema } = require('../validators/class.validator');
+import express from 'express';
+const { Router } = express;
+import classController from '../controllers/class.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { createClassSchema, updateClassSchema, assignTeacherSchema, manageMembersSchema, listClassQuerySchema } from '../validators/class.validator.js';
 
 const router = Router();
 
@@ -33,4 +34,4 @@ router.patch('/:id/teacher', authorizeRole('admin'), validate(assignTeacherSchem
 // GET /classes/:id/students — admin + teacher
 router.get('/:id/students', authorizeRole('admin', 'teacher'), classController.getClassStudents);
 
-module.exports = router;
+export default router;

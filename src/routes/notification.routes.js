@@ -1,12 +1,13 @@
-const { Router } = require('express');
-const notificationController = require('../controllers/notification.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const validate = require('../middlewares/validate.middleware');
-const {
+import express from 'express';
+const { Router } = express;
+import notificationController from '../controllers/notification.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import {
   registerDeviceSchema,
   listNotificationsQuerySchema,
   notificationIdParamSchema,
-} = require('../validators/notification.validator');
+} from '../validators/notification.validator.js';
 
 const router = Router();
 
@@ -17,4 +18,4 @@ router.get('/', validate(listNotificationsQuerySchema, 'query'), notificationCon
 router.patch('/read-all', notificationController.markAllRead);
 router.patch('/:id/read', validate(notificationIdParamSchema, 'params'), notificationController.markNotificationRead);
 
-module.exports = router;
+export default router;

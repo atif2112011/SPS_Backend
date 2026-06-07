@@ -1,5 +1,5 @@
-const multer = require('multer');
-const ERROR_CODES = require('../constants/errorCodes');
+import multer from 'multer';
+import ERROR_CODES from '../constants/errorCodes.js';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -46,4 +46,5 @@ const handleUpload = (multerMiddleware) => (req, res, next) => {
   });
 };
 
-module.exports = { uploadImages, uploadFiles, uploadSingle, handleUpload };
+export { uploadImages, uploadFiles, uploadSingle, handleUpload };
+export default { uploadImages, uploadFiles, uploadSingle, handleUpload };

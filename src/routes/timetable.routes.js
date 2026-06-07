@@ -1,9 +1,10 @@
-const { Router } = require('express');
-const timetableController = require('../controllers/timetable.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { authorizeRole } = require('../middlewares/rbac.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { createTimetableSchema, updateTimetableSchema } = require('../validators/timetable.validator');
+import express from 'express';
+const { Router } = express;
+import timetableController from '../controllers/timetable.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { createTimetableSchema, updateTimetableSchema } from '../validators/timetable.validator.js';
 
 const router = Router();
 
@@ -22,4 +23,4 @@ router.patch('/:id', authorizeRole('admin', 'teacher'), validate(updateTimetable
 // DELETE /timetables/:id — admin only
 router.delete('/:id', authorizeRole('admin'), timetableController.deleteTimetable);
 
-module.exports = router;
+export default router;

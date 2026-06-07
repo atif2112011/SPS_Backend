@@ -1,12 +1,12 @@
-const Notice = require('../models/Notice.model');
-const TeacherProfile = require('../models/TeacherProfile.model');
-const StudentProfile = require('../models/StudentProfile.model');
-const { uploadFile } = require('../utils/firebaseStorage');
-const { parsePagination, buildPaginationMeta } = require('../utils/paginationHelper');
-const ERROR_CODES = require('../constants/errorCodes');
-const logActivity = require('../utils/activityLogger');
-const eventBus = require('../events/eventBus');
-const EVENTS = require('../constants/events');
+import Notice from '../models/Notice.model.js';
+import TeacherProfile from '../models/TeacherProfile.model.js';
+import StudentProfile from '../models/StudentProfile.model.js';
+import { uploadFile } from '../utils/firebaseStorage.js';
+import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import ERROR_CODES from '../constants/errorCodes.js';
+import logActivity from '../utils/activityLogger.js';
+import eventBus from '../events/eventBus.js';
+import EVENTS from '../constants/events.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -190,4 +190,5 @@ const deleteNotice = async (noticeId, actor) => {
   });
 };
 
-module.exports = { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };
+export { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };
+export default { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };

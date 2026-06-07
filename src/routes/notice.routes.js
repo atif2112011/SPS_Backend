@@ -1,10 +1,11 @@
-const { Router } = require('express');
-const noticeController = require('../controllers/notice.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { authorizeRole } = require('../middlewares/rbac.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { handleUpload, uploadImages } = require('../middlewares/upload.middleware');
-const { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema } = require('../validators/notice.validator');
+import express from 'express';
+const { Router } = express;
+import noticeController from '../controllers/notice.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { handleUpload, uploadImages } from '../middlewares/upload.middleware.js';
+import { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema } from '../validators/notice.validator.js';
 
 const router = Router();
 
@@ -25,4 +26,4 @@ router.patch('/:id', authorizeRole('admin', 'teacher'), handleUpload(uploadImage
 // DELETE /notices/:id — admin, teacher (own only)
 router.delete('/:id', authorizeRole('admin', 'teacher'), noticeController.deleteNotice);
 
-module.exports = router;
+export default router;

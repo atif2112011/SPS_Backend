@@ -20,4 +20,5 @@ const buildPaginationMeta = (total, page, limit) => {
   };
 };
 
-module.exports = { parsePagination, buildPaginationMeta };
+export { parsePagination, buildPaginationMeta };
+export default { parsePagination, buildPaginationMeta };

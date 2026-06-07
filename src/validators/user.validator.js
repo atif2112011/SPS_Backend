@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const createStudentSchema = z.object({
   username: z.string().min(3).max(50).trim().toLowerCase(),
@@ -60,4 +60,5 @@ const listUsersQuerySchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).optional(),
 });
 
-module.exports = { createStudentSchema, createTeacherSchema, updateStudentSchema, updateTeacherSchema, listUsersQuerySchema };
+export { createStudentSchema, createTeacherSchema, updateStudentSchema, updateTeacherSchema, listUsersQuerySchema };
+export default { createStudentSchema, createTeacherSchema, updateStudentSchema, updateTeacherSchema, listUsersQuerySchema };

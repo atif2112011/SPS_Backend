@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const activityLogsQuerySchema = z.object({
   page: z.string().optional(),
@@ -10,4 +10,5 @@ const activityLogsQuerySchema = z.object({
   entityType: z.string().optional(),
 });
 
-module.exports = { activityLogsQuerySchema };
+export { activityLogsQuerySchema };
+export default { activityLogsQuerySchema };

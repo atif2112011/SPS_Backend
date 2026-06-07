@@ -1,6 +1,6 @@
-const noticeService = require('../services/notice.service');
-const { sendSuccess } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
+import noticeService from '../services/notice.service.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
 
 /**
  * POST /notices
@@ -50,4 +50,5 @@ const deleteNotice = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Notice deleted successfully' });
 });
 
-module.exports = { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };
+export { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };
+export default { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };

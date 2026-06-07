@@ -1,6 +1,6 @@
-const resultService = require('../services/result.service');
-const { sendSuccess } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
+import resultService from '../services/result.service.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
 
 /**
  * POST /results
@@ -40,4 +40,5 @@ const deleteResult = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Result deleted successfully' });
 });
 
-module.exports = { createResult, listStudentResults, updateResult, deleteResult };
+export { createResult, listStudentResults, updateResult, deleteResult };
+export default { createResult, listStudentResults, updateResult, deleteResult };

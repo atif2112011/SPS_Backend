@@ -1,6 +1,6 @@
-const reportCardService = require('../services/reportCard.service');
-const { sendSuccess } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
+import reportCardService from '../services/reportCard.service.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
 
 /**
  * POST /report-cards
@@ -40,4 +40,5 @@ const deleteReportCard = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Report card deleted successfully' });
 });
 
-module.exports = { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };
+export { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };
+export default { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };

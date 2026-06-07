@@ -1,5 +1,5 @@
-const { getMessaging } = require('../config/firebase');
-const logger = require('../config/logger');
+import { getMessaging } from '../config/firebase.js';
+import logger from '../config/logger.js';
 
 const chunk = (items, size) => {
   const chunks = [];
@@ -39,4 +39,5 @@ const sendPushToTokens = async ({ tokens, title, body, data = {} }) => {
   return { successCount, failureCount };
 };
 
-module.exports = { sendPushToTokens };
+export { sendPushToTokens };
+export default { sendPushToTokens };

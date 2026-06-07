@@ -1,11 +1,11 @@
-const Result = require('../models/Result.model');
-const TeacherProfile = require('../models/TeacherProfile.model');
-const Class = require('../models/Class.model');
-const User = require('../models/User.model');
-const ERROR_CODES = require('../constants/errorCodes');
-const logActivity = require('../utils/activityLogger');
-const eventBus = require('../events/eventBus');
-const EVENTS = require('../constants/events');
+import Result from '../models/Result.model.js';
+import TeacherProfile from '../models/TeacherProfile.model.js';
+import Class from '../models/Class.model.js';
+import User from '../models/User.model.js';
+import ERROR_CODES from '../constants/errorCodes.js';
+import logActivity from '../utils/activityLogger.js';
+import eventBus from '../events/eventBus.js';
+import EVENTS from '../constants/events.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -121,4 +121,5 @@ const deleteResult = async (resultId, actor) => {
   });
 };
 
-module.exports = { createResult, listStudentResults, updateResult, deleteResult };
+export { createResult, listStudentResults, updateResult, deleteResult };
+export default { createResult, listStudentResults, updateResult, deleteResult };

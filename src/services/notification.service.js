@@ -1,11 +1,11 @@
-const Notification = require('../models/Notification.model');
-const DeviceToken = require('../models/DeviceToken.model');
-const User = require('../models/User.model');
-const StudentProfile = require('../models/StudentProfile.model');
-const { parsePagination, buildPaginationMeta } = require('../utils/paginationHelper');
-const { sendPushToTokens } = require('./fcm.service');
-const ERROR_CODES = require('../constants/errorCodes');
-const logger = require('../config/logger');
+import Notification from '../models/Notification.model.js';
+import DeviceToken from '../models/DeviceToken.model.js';
+import User from '../models/User.model.js';
+import StudentProfile from '../models/StudentProfile.model.js';
+import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import { sendPushToTokens } from './fcm.service.js';
+import ERROR_CODES from '../constants/errorCodes.js';
+import logger from '../config/logger.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -129,13 +129,5 @@ const notifyFromEvent = async (payload) => {
   }
 };
 
-module.exports = {
-  registerDevice,
-  listNotifications,
-  markNotificationRead,
-  markAllRead,
-  getStudentRecipientsForClassIds,
-  resolveStudentRecipients,
-  createAndSendNotifications,
-  notifyFromEvent,
-};
+export { registerDevice, listNotifications, markNotificationRead, markAllRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };
+export default { registerDevice, listNotifications, markNotificationRead, markAllRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };

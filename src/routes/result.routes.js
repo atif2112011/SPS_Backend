@@ -1,9 +1,10 @@
-const { Router } = require('express');
-const resultController = require('../controllers/result.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { authorizeRole } = require('../middlewares/rbac.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { createResultSchema, updateResultSchema } = require('../validators/result.validator');
+import express from 'express';
+const { Router } = express;
+import resultController from '../controllers/result.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { createResultSchema, updateResultSchema } from '../validators/result.validator.js';
 
 const router = Router();
 
@@ -21,4 +22,4 @@ router.patch('/:id', authorizeRole('admin', 'teacher'), validate(updateResultSch
 // DELETE /results/:id — admin, teacher (own)
 router.delete('/:id', authorizeRole('admin', 'teacher'), resultController.deleteResult);
 
-module.exports = router;
+export default router;

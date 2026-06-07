@@ -1,15 +1,15 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const cookieParser = require('cookie-parser');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-const requestContext = require('./middlewares/requestContext.middleware');
-const errorHandler = require('./middlewares/errorHandler.middleware');
-const routes = require('./routes/index');
-const logger = require('./config/logger');
-const { bootstrap } = require('./bootstrap');
-const { isVercelRuntime } = require('./utils/env');
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import requestContext from './middlewares/requestContext.middleware.js';
+import errorHandler from './middlewares/errorHandler.middleware.js';
+import routes from './routes/index.js';
+import logger from './config/logger.js';
+import { bootstrap } from './bootstrap.js';
+import { isVercelRuntime } from './utils/env.js';
 
 const app = express();
 
@@ -59,4 +59,4 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

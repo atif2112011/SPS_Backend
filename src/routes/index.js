@@ -1,16 +1,17 @@
-const { Router } = require('express');
-const authRoutes = require('./auth.routes');
-const userRoutes = require('./user.routes');
-const studentRoutes = require('./student.routes');
-const teacherRoutes = require('./teacher.routes');
-const classRoutes = require('./class.routes');
-const noticeRoutes = require('./notice.routes');
-const assignmentRoutes = require('./assignment.routes');
-const timetableRoutes = require('./timetable.routes');
-const reportCardRoutes = require('./report-card.routes');
-const resultRoutes = require('./result.routes');
-const notificationRoutes = require('./notification.routes');
-const adminRoutes = require('./admin.routes');
+import express from 'express';
+const { Router } = express;
+import authRoutes from './auth.routes.js';
+import userRoutes from './user.routes.js';
+import studentRoutes from './student.routes.js';
+import teacherRoutes from './teacher.routes.js';
+import classRoutes from './class.routes.js';
+import noticeRoutes from './notice.routes.js';
+import assignmentRoutes from './assignment.routes.js';
+import timetableRoutes from './timetable.routes.js';
+import reportCardRoutes from './report-card.routes.js';
+import resultRoutes from './result.routes.js';
+import notificationRoutes from './notification.routes.js';
+import adminRoutes from './admin.routes.js';
 
 const router = Router();
 
@@ -29,4 +30,4 @@ router.use('/admin', adminRoutes);
 
 // Future modules:
 
-module.exports = router;
+export default router;

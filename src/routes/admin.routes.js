@@ -1,9 +1,10 @@
-const { Router } = require('express');
-const adminController = require('../controllers/admin.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { authorizeRole } = require('../middlewares/rbac.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { activityLogsQuerySchema } = require('../validators/admin.validator');
+import express from 'express';
+const { Router } = express;
+import adminController from '../controllers/admin.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { activityLogsQuerySchema } from '../validators/admin.validator.js';
 
 const router = Router();
 
@@ -13,4 +14,4 @@ router.use(authorizeRole('admin'));
 router.get('/metrics/overview', adminController.getOverviewMetrics);
 router.get('/activity-logs', validate(activityLogsQuerySchema, 'query'), adminController.listActivityLogs);
 
-module.exports = router;
+export default router;

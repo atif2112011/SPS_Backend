@@ -1,9 +1,10 @@
-const { Router } = require('express');
-const userController = require('../controllers/user.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { authorizeRole } = require('../middlewares/rbac.middleware');
-const validate = require('../middlewares/validate.middleware');
-const { updateTeacherSchema, listUsersQuerySchema } = require('../validators/user.validator');
+import express from 'express';
+const { Router } = express;
+import userController from '../controllers/user.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { updateTeacherSchema, listUsersQuerySchema } from '../validators/user.validator.js';
 
 const router = Router();
 
@@ -22,4 +23,4 @@ router.patch('/:id', authorizeRole('admin'), validate(updateTeacherSchema), user
 router.post('/:id/block', authorizeRole('admin'), userController.blockUser);
 router.post('/:id/unblock', authorizeRole('admin'), userController.unblockUser);
 
-module.exports = router;
+export default router;

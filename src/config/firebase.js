@@ -1,5 +1,5 @@
-const admin = require('firebase-admin');
-const logger = require('./logger');
+import admin from 'firebase-admin';
+import logger from './logger.js';
 
 let initialized = false;
 
@@ -27,4 +27,5 @@ const initFirebase = () => {
 const getStorage = () => admin.storage().bucket();
 const getMessaging = () => admin.messaging();
 
-module.exports = { initFirebase, getStorage, getMessaging };
+export { initFirebase, getStorage, getMessaging };
+export default { initFirebase, getStorage, getMessaging };

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const deviceTokenSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -10,4 +10,4 @@ const deviceTokenSchema = new mongoose.Schema({
 deviceTokenSchema.index({ userId: 1, token: 1 }, { unique: true });
 deviceTokenSchema.index({ token: 1 });
 
-module.exports = mongoose.model('DeviceToken', deviceTokenSchema);
+export default mongoose.model('DeviceToken', deviceTokenSchema);

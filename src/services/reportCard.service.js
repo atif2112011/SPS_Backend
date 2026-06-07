@@ -1,12 +1,12 @@
-const ReportCard = require('../models/ReportCard.model');
-const TeacherProfile = require('../models/TeacherProfile.model');
-const Class = require('../models/Class.model');
-const User = require('../models/User.model');
-const { uploadFile } = require('../utils/firebaseStorage');
-const ERROR_CODES = require('../constants/errorCodes');
-const logActivity = require('../utils/activityLogger');
-const eventBus = require('../events/eventBus');
-const EVENTS = require('../constants/events');
+import ReportCard from '../models/ReportCard.model.js';
+import TeacherProfile from '../models/TeacherProfile.model.js';
+import Class from '../models/Class.model.js';
+import User from '../models/User.model.js';
+import { uploadFile } from '../utils/firebaseStorage.js';
+import ERROR_CODES from '../constants/errorCodes.js';
+import logActivity from '../utils/activityLogger.js';
+import eventBus from '../events/eventBus.js';
+import EVENTS from '../constants/events.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -141,4 +141,5 @@ const deleteReportCard = async (reportCardId, actor) => {
   });
 };
 
-module.exports = { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };
+export { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };
+export default { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };

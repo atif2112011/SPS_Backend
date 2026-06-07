@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const activityLogSchema = new mongoose.Schema({
   actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -19,4 +19,4 @@ activityLogSchema.index({ actorId: 1 });
 activityLogSchema.index({ entityType: 1 });
 activityLogSchema.index({ createdAt: -1 });
 
-module.exports = mongoose.model('ActivityLog', activityLogSchema);
+export default mongoose.model('ActivityLog', activityLogSchema);

@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const logger = require('./logger');
-const { isVercelRuntime } = require('../utils/env');
+import mongoose from 'mongoose';
+import logger from './logger.js';
+import { isVercelRuntime } from '../utils/env.js';
 
 const connectDB = async () => {
   try {
@@ -24,4 +24,4 @@ const connectDB = async () => {
   }
 };
 
-module.exports = connectDB;
+export default connectDB;

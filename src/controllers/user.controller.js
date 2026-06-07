@@ -1,7 +1,7 @@
-const userService = require('../services/user.service');
-const logActivity = require('../utils/activityLogger');
-const { sendSuccess } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
+import userService from '../services/user.service.js';
+import logActivity from '../utils/activityLogger.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
 
 /**
  * POST /users/students
@@ -129,4 +129,5 @@ const unblockUser = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'User unblocked successfully' });
 });
 
-module.exports = { createStudent, createTeacher, listStudents, listTeachers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser };
+export { createStudent, createTeacher, listStudents, listTeachers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser };
+export default { createStudent, createTeacher, listStudents, listTeachers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser };

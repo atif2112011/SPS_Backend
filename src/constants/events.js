@@ -8,4 +8,4 @@ const EVENTS = {
   ASSIGNMENT_DUE: 'assignment:due',
 };
 
-module.exports = EVENTS;
+export default EVENTS;

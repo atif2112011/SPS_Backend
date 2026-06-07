@@ -12,4 +12,5 @@ const sendError = (res, { message = 'An error occurred', errorCode = 'INTERNAL_E
   return res.status(statusCode).json(body);
 };
 
-module.exports = { sendSuccess, sendError };
+export { sendSuccess, sendError };
+export default { sendSuccess, sendError };

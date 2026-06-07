@@ -1,6 +1,6 @@
-const adminService = require('../services/admin.service');
-const { sendSuccess } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
+import adminService from '../services/admin.service.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
 
 const getOverviewMetrics = asyncWrapper(async (req, res) => {
   const metrics = await adminService.getOverviewMetrics();
@@ -12,4 +12,5 @@ const listActivityLogs = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Activity logs fetched', data: logs, pagination });
 });
 
-module.exports = { getOverviewMetrics, listActivityLogs };
+export { getOverviewMetrics, listActivityLogs };
+export default { getOverviewMetrics, listActivityLogs };

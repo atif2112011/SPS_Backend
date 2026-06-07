@@ -1,7 +1,7 @@
-const authService = require('../services/auth.service');
-const { sendSuccess, sendError } = require('../utils/responseHelper');
-const asyncWrapper = require('../utils/asyncWrapper');
-const ERROR_CODES = require('../constants/errorCodes');
+import authService from '../services/auth.service.js';
+import { sendSuccess, sendError } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
+import ERROR_CODES from '../constants/errorCodes.js';
 
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
@@ -73,4 +73,5 @@ const changePassword = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Password changed successfully. Please log in again.' });
 });
 
-module.exports = { login, refresh, logout, getMe, changePassword };
+export { login, refresh, logout, getMe, changePassword };
+export default { login, refresh, logout, getMe, changePassword };

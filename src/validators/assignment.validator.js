@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId');
 
@@ -37,4 +37,5 @@ const listAssignmentsQuerySchema = z.object({
   status: z.enum(['active', 'archived']).optional(),
 });
 
-module.exports = { createAssignmentSchema, updateAssignmentSchema, listAssignmentsQuerySchema };
+export { createAssignmentSchema, updateAssignmentSchema, listAssignmentsQuerySchema };
+export default { createAssignmentSchema, updateAssignmentSchema, listAssignmentsQuerySchema };

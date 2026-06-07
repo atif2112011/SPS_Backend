@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId');
 
@@ -38,4 +38,5 @@ const listNoticesQuerySchema = z.object({
   status: z.enum(['active', 'archived']).optional(),
 });
 
-module.exports = { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema };
+export { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema };
+export default { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema };

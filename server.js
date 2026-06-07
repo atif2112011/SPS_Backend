@@ -1,8 +1,10 @@
-require('dotenv').config();
-const app = require('./src/app');
-const logger = require('./src/config/logger');
-const { bootstrap } = require('./src/bootstrap');
-const { isVercelRuntime } = require('./src/utils/env');
+import dotenv from 'dotenv';
+dotenv.config();
+import { fileURLToPath } from 'node:url';
+import app from './src/app.js';
+import logger from './src/config/logger.js';
+import { bootstrap } from './src/bootstrap.js';
+import { isVercelRuntime } from './src/utils/env.js';
 
 const PORT = process.env.PORT || 5000;
 const isVercel = isVercelRuntime();
@@ -20,11 +22,13 @@ const start = async () => {
   });
 };
 
-if (require.main === module && !isVercel) {
+const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+
+if (isMainModule && !isVercel) {
   start().catch((err) => {
     logger.error('Failed to start server', err);
     process.exit(1);
   });
 }
 
-module.exports = app;
+export default app;

@@ -1,7 +1,7 @@
-const cron = require('node-cron');
-const Assignment = require('../models/Assignment.model');
-const notificationService = require('../services/notification.service');
-const logger = require('../config/logger');
+import cron from 'node-cron';
+import Assignment from '../models/Assignment.model.js';
+import notificationService from '../services/notification.service.js';
+import logger from '../config/logger.js';
 
 let jobsStarted = false;
 
@@ -80,8 +80,5 @@ const startAssignmentReminderJobs = () => {
   logger.info('Assignment reminder jobs scheduled');
 };
 
-module.exports = {
-  startAssignmentReminderJobs,
-  runDailyAssignmentReminders,
-  runHourlyAssignmentDueReminders,
-};
+export { startAssignmentReminderJobs, runDailyAssignmentReminders, runHourlyAssignmentDueReminders };
+export default { startAssignmentReminderJobs, runDailyAssignmentReminders, runHourlyAssignmentDueReminders };
