@@ -6,7 +6,6 @@ import morgan from 'morgan';
 import requestContext from './middlewares/requestContext.middleware.js';
 import errorHandler from './middlewares/errorHandler.middleware.js';
 import routes from './routes/index.js';
-import logger from './config/logger.js';
 import { bootstrap } from './bootstrap.js';
 import { isVercelRuntime } from './utils/env.js';
 
@@ -25,9 +24,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
-app.use(morgan('combined', {
-  stream: { write: (msg) => logger.http(msg.trim()) },
-}));
+app.use(morgan('dev'));
 
 if (isVercelRuntime()) {
   app.use(async (req, res, next) => {
