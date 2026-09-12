@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "test:phase8": "node test-phase8.mjs",
     "test:dashboard": "node test-dashboard.mjs",
-    "test:refresh": "node test-refresh-flow.mjs"
+    "test:refresh": "node test-refresh-flow.mjs",
+    "test:notifications": "node test-notification-system.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

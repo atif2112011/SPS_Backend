@@ -3,10 +3,10 @@ import DeviceToken from '../models/DeviceToken.model.js';
 import User from '../models/User.model.js';
 import StudentProfile from '../models/StudentProfile.model.js';
 import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
-import { sendPushToTokens } from './fcm.service.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 import logger from '../config/logger.js';
 import { syncUnreadNoticeMetric } from './dashboard.service.js';
+import notificationCampaignService from './notificationCampaign.service.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -19,12 +19,33 @@ const uniqueStrings = (values) => [...new Set((values || []).filter(Boolean).map
 
 const registerDevice = async (data, actor) => {
   const token = await DeviceToken.findOneAndUpdate(
-    { userId: actor.userId, token: data.token },
-    { platform: data.platform, lastSeenAt: new Date() },
+    { token: data.token },
+    {
+      userId: actor.userId,
+      platform: data.platform,
+      deviceId: data.deviceId,
+      appVersion: data.appVersion,
+      enabled: true,
+      lastSeenAt: new Date(),
+      tokenRefreshedAt: new Date(),
+      disabledAt: null,
+      disabledReason: null,
+      consecutiveFailureCount: 0,
+    },
     { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
   );
 
   return token;
+};
+
+const unregisterDevice = async (data, actor) => {
+  const filter = { userId: actor.userId };
+  if (data.token) filter.token = data.token;
+  if (data.deviceId) filter.deviceId = data.deviceId;
+  const result = await DeviceToken.updateMany(filter, {
+    $set: { enabled: false, disabledAt: new Date(), disabledReason: 'user_logout' },
+  });
+  return { disabledCount: result.modifiedCount || 0 };
 };
 
 const listNotifications = async (query, actor) => {
@@ -104,7 +125,7 @@ const resolveStudentRecipients = async ({ audienceType, classIds = [], studentId
 
 const createAndSendNotifications = async ({ recipients, title, body, type, entityType, entityId, dedupeKeyPrefix }) => {
   const recipientIds = uniqueStrings(recipients);
-  if (recipientIds.length === 0) return { createdCount: 0, push: { successCount: 0, failureCount: 0 } };
+  if (recipientIds.length === 0) return { createdCount: 0, push: { queuedCount: 0 } };
 
   const users = await User.find({ _id: { $in: recipientIds }, status: 'active' }).select('_id role');
   const docs = users.map((user) => ({
@@ -131,12 +152,14 @@ const createAndSendNotifications = async ({ recipients, title, body, type, entit
     }
   }
 
-  const deviceTokens = await DeviceToken.find({ userId: { $in: users.map((user) => user._id) } }).select('token');
-  const push = await sendPushToTokens({
-    tokens: deviceTokens.map((deviceToken) => deviceToken.token),
+  const push = await notificationCampaignService.createSystemCampaign({
+    recipients: users.map((user) => user._id),
     title,
     body,
-    data: { type, entityType, entityId },
+    type,
+    entityType,
+    entityId,
+    dedupeKeyPrefix,
   });
 
   if (type === 'notice' && createdDocs.length > 0) {
@@ -159,5 +182,5 @@ const notifyFromEvent = async (payload) => {
   }
 };
 
-export { registerDevice, listNotifications, markNotificationRead, markAllRead, markEntityRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };
-export default { registerDevice, listNotifications, markNotificationRead, markAllRead, markEntityRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };
+export { registerDevice, unregisterDevice, listNotifications, markNotificationRead, markAllRead, markEntityRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };
+export default { registerDevice, unregisterDevice, listNotifications, markNotificationRead, markAllRead, markEntityRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };

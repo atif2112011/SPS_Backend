@@ -1,43 +1,24 @@
 import { getMessaging } from '../config/firebase.js';
-import logger from '../config/logger.js';
 
-const chunk = (items, size) => {
-  const chunks = [];
-  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
-  return chunks;
+const sendPushBatch = async ({ tokens, title, body, data = {} }) => {
+  if (!tokens?.length) return [];
+  const messaging = getMessaging();
+  const response = await messaging.sendEachForMulticast({
+    tokens,
+    notification: { title, body },
+    android: {
+      priority: 'high',
+      notification: { channelId: 'default', sound: 'default' },
+    },
+    data: Object.fromEntries(Object.entries(data).map(([key, value]) => [key, String(value)])),
+  });
+  return response.responses.map((result) => ({
+    success: result.success,
+    messageId: result.messageId,
+    errorCode: result.error?.code,
+    errorMessage: result.error?.message,
+  }));
 };
 
-const sendPushToTokens = async ({ tokens, title, body, data = {} }) => {
-  const uniqueTokens = [...new Set((tokens || []).filter(Boolean))];
-  if (uniqueTokens.length === 0) {
-    return { successCount: 0, failureCount: 0 };
-  }
-
-  let successCount = 0;
-  let failureCount = 0;
-
-  try {
-    const messaging = getMessaging();
-    const batches = chunk(uniqueTokens, 500);
-
-    for (const batch of batches) {
-      const response = await messaging.sendEachForMulticast({
-        tokens: batch,
-        notification: { title, body },
-        data: Object.fromEntries(
-          Object.entries(data).map(([key, value]) => [key, String(value)])
-        ),
-      });
-      successCount += response.successCount;
-      failureCount += response.failureCount;
-    }
-  } catch (err) {
-    failureCount = uniqueTokens.length;
-    logger.warn('FCM push skipped or failed', { error: err.message });
-  }
-
-  return { successCount, failureCount };
-};
-
-export { sendPushToTokens };
-export default { sendPushToTokens };
+export { sendPushBatch };
+export default { sendPushBatch };
