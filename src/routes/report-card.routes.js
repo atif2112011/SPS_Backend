@@ -5,14 +5,14 @@ import { authenticate } from '../middlewares/auth.middleware.js';
 import { authorizeRole } from '../middlewares/rbac.middleware.js';
 import validate from '../middlewares/validate.middleware.js';
 import { handleUpload, uploadFiles } from '../middlewares/upload.middleware.js';
-import { createReportCardSchema, updateReportCardSchema } from '../validators/reportCard.validator.js';
+import { createReportCardSchema, updateReportCardSchema, listReportCardsQuerySchema, studentIdParamSchema } from '../validators/reportCard.validator.js';
 
 const router = Router();
 
 router.use(authenticate);
 
 // GET /report-cards/student/:studentId — admin, teacher, student (own)
-router.get('/student/:studentId', reportCardController.listStudentReportCards);
+router.get('/student/:studentId', validate(studentIdParamSchema, 'params'), validate(listReportCardsQuerySchema, 'query'), reportCardController.listStudentReportCards);
 
 // POST /report-cards — admin, teacher
 router.post('/', authorizeRole('admin', 'teacher'), handleUpload(uploadFiles), validate(createReportCardSchema), reportCardController.createReportCard);

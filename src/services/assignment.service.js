@@ -2,7 +2,7 @@ import Assignment from '../models/Assignment.model.js';
 import TeacherProfile from '../models/TeacherProfile.model.js';
 import StudentProfile from '../models/StudentProfile.model.js';
 import { uploadFile } from '../utils/firebaseStorage.js';
-import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 import logActivity from '../utils/activityLogger.js';
 import eventBus from '../events/eventBus.js';
@@ -68,12 +68,16 @@ const createAssignment = async (data, actor, files) => {
  * Query: filter=upcoming|past, classId, search
  */
 const listAssignments = async (query, actor) => {
-  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query);
+  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['title', 'deadline', 'status', 'createdAt'], 'deadline');
   const { search, classId, filter, status } = query;
 
   const dbFilter = { isDeleted: false };
   if (status) dbFilter.status = status;
-  if (search) dbFilter.title = { $regex: search, $options: 'i' };
+  const constraints = [];
+  if (search) {
+    const searchRegex = buildSearchRegex(search);
+    constraints.push({ $or: [{ title: searchRegex }, { description: searchRegex }] });
+  }
   if (classId) dbFilter.classIds = classId;
 
   if (filter === 'upcoming') dbFilter.deadline = { $gte: new Date() };
@@ -81,15 +85,17 @@ const listAssignments = async (query, actor) => {
 
   if (actor.role === 'teacher') {
     const assignedClassId = await getTeacherClassId(actor.userId);
-    dbFilter.$or = [{ classIds: assignedClassId }, { assignedBy: actor.userId }];
+    constraints.push({ $or: [{ classIds: assignedClassId }, { assignedBy: actor.userId }] });
   } else if (actor.role === 'student') {
     const profile = await StudentProfile.findOne({ userId: actor.userId });
     if (profile && profile.classId) {
-      dbFilter.$or = [{ classIds: profile.classId }, { studentIds: actor.userId }];
+      constraints.push({ $or: [{ classIds: profile.classId }, { studentIds: actor.userId }] });
     } else {
       dbFilter.studentIds = actor.userId;
     }
   }
+
+  if (constraints.length) dbFilter.$and = constraints;
 
   const [assignments, total] = await Promise.all([
     Assignment.find(dbFilter).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit),
@@ -135,7 +141,7 @@ const updateAssignment = async (assignmentId, data, actor, files) => {
     delete updates.attachments;
   }
 
-  const updated = await Assignment.findByIdAndUpdate(assignmentId, updates, { returnDocument: 'after' });
+  const updated = await Assignment.findByIdAndUpdate(assignmentId, updates, { returnDocument: 'after', runValidators: true });
 
   logActivity({
     actorId: actor.userId, actorName: actor.userId, actorRole: actor.role,

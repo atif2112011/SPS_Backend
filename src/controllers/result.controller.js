@@ -17,8 +17,8 @@ const createResult = asyncWrapper(async (req, res) => {
  * Access: admin, teacher (own class), student (own only)
  */
 const listStudentResults = asyncWrapper(async (req, res) => {
-  const results = await resultService.listStudentResults(req.params.studentId, req.user);
-  sendSuccess(res, { message: 'Results fetched', data: results });
+  const { results, pagination } = await resultService.listStudentResults(req.params.studentId, req.query, req.user);
+  sendSuccess(res, { message: 'Results fetched', data: results, pagination });
 });
 
 /**

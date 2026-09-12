@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// username and email are already indexed via unique:true / sparse:true in schema definition
+// username is unique; email is sparse-indexed for lookup but may be shared by family members
 // Only add compound or non-schema indexes here
 userSchema.index({ role: 1 });
 userSchema.index({ status: 1 });

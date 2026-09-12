@@ -2,7 +2,7 @@ import Notification from '../models/Notification.model.js';
 import DeviceToken from '../models/DeviceToken.model.js';
 import User from '../models/User.model.js';
 import StudentProfile from '../models/StudentProfile.model.js';
-import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
 import { sendPushToTokens } from './fcm.service.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 import logger from '../config/logger.js';
@@ -27,11 +27,15 @@ const registerDevice = async (data, actor) => {
 };
 
 const listNotifications = async (query, actor) => {
-  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query);
+  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['title', 'type', 'isRead', 'sentAt', 'createdAt']);
   const filter = { recipientUserId: actor.userId };
 
   if (query.isRead) filter.isRead = query.isRead === 'true';
   if (query.type) filter.type = query.type;
+  if (query.search) {
+    const searchRegex = buildSearchRegex(query.search);
+    filter.$or = [{ title: searchRegex }, { body: searchRegex }, { entityType: searchRegex }];
+  }
 
   const [notifications, total] = await Promise.all([
     Notification.find(filter).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit),

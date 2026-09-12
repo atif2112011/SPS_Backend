@@ -2,7 +2,7 @@ import User from '../models/User.model.js';
 import StudentProfile from '../models/StudentProfile.model.js';
 import TeacherProfile from '../models/TeacherProfile.model.js';
 import { hashPassword } from '../utils/hashUtils.js';
-import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 
 /** Helper: throw a structured app error */
@@ -75,17 +75,19 @@ const createTeacher = async (data) => {
  * List users with pagination, search, filter by status/role.
  */
 const listUsers = async (query, roleFilter = null) => {
-  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query);
+  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['name', 'username', 'status', 'createdAt']);
   const { search, status } = query;
 
   const filter = { status: { $ne: 'deleted' } };
   if (roleFilter) filter.role = roleFilter;
   if (status) filter.status = status;
   if (search) {
+    const searchRegex = buildSearchRegex(search);
     filter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { username: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
+      { name: searchRegex },
+      { username: searchRegex },
+      { email: searchRegex },
+      { phone: searchRegex },
     ];
   }
 

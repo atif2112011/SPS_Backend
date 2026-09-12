@@ -17,8 +17,8 @@ const createReportCard = asyncWrapper(async (req, res) => {
  * Access: admin, teacher (own class), student (own only)
  */
 const listStudentReportCards = asyncWrapper(async (req, res) => {
-  const reportCards = await reportCardService.listStudentReportCards(req.params.studentId, req.user);
-  sendSuccess(res, { message: 'Report cards fetched', data: reportCards });
+  const { reportCards, pagination } = await reportCardService.listStudentReportCards(req.params.studentId, req.query, req.user);
+  sendSuccess(res, { message: 'Report cards fetched', data: reportCards, pagination });
 });
 
 /**

@@ -27,11 +27,11 @@ const updateAssignmentSchema = z.object({
 });
 
 const listAssignmentsQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-  sortBy: z.string().optional(),
+  page: z.string().regex(/^\d+$/).optional(),
+  limit: z.string().regex(/^\d+$/).optional(),
+  sortBy: z.enum(['title', 'deadline', 'status', 'createdAt']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
-  search: z.string().optional(),
+  search: z.string().trim().max(100).optional(),
   classId: objectIdSchema.optional(),
   filter: z.enum(['upcoming', 'past']).optional(),
   status: z.enum(['active', 'archived']).optional(),

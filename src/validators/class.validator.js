@@ -25,11 +25,11 @@ const manageMembersSchema = z.object({
 });
 
 const listClassQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-  search: z.string().optional(),
-  academicYear: z.string().optional(),
-  sortBy: z.string().optional(),
+  page: z.string().regex(/^\d+$/).optional(),
+  limit: z.string().regex(/^\d+$/).optional(),
+  search: z.string().trim().max(100).optional(),
+  academicYear: z.string().trim().max(10).optional(),
+  sortBy: z.enum(['className', 'section', 'academicYear', 'createdAt']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
 });
 

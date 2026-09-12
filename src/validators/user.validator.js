@@ -52,11 +52,11 @@ const updateTeacherSchema = z.object({
 }).refine(data => Object.keys(data).length > 0, { message: 'At least one field required' });
 
 const listUsersQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-  search: z.string().optional(),
-  status: z.enum(['active', 'blocked', 'deleted']).optional(),
-  sortBy: z.string().optional(),
+  page: z.string().regex(/^\d+$/).optional(),
+  limit: z.string().regex(/^\d+$/).optional(),
+  search: z.string().trim().max(100).optional(),
+  status: z.enum(['active', 'blocked']).optional(),
+  sortBy: z.enum(['name', 'username', 'status', 'createdAt']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
 });
 

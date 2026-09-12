@@ -6,10 +6,15 @@ import ERROR_CODES from '../constants/errorCodes.js';
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+  sameSite: process.env.COOKIE_SAME_SITE || (process.env.NODE_ENV === 'production' ? 'none' : 'lax'),
   maxAge: 7 * 24 * 60 * 60 * 1000,
   path: '/api/v1/auth',
 });
+
+const clearRefreshCookie = (res) => {
+  const { maxAge, ...options } = getRefreshCookieOptions();
+  res.clearCookie('refreshToken', options);
+};
 
 const login = asyncWrapper(async (req, res) => {
   const { username, password } = req.body;
@@ -54,7 +59,7 @@ const logout = asyncWrapper(async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
   await authService.logout(refreshToken);
 
-  res.clearCookie('refreshToken', { path: '/api/v1/auth' });
+  clearRefreshCookie(res);
 
   sendSuccess(res, { message: 'Logged out successfully' });
 });
@@ -68,7 +73,7 @@ const changePassword = asyncWrapper(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   await authService.changePassword(req.user.userId, currentPassword, newPassword);
 
-  res.clearCookie('refreshToken', { path: '/api/v1/auth' });
+  clearRefreshCookie(res);
 
   sendSuccess(res, { message: 'Password changed successfully. Please log in again.' });
 });

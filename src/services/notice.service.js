@@ -2,7 +2,7 @@ import Notice from '../models/Notice.model.js';
 import TeacherProfile from '../models/TeacherProfile.model.js';
 import StudentProfile from '../models/StudentProfile.model.js';
 import { uploadFile } from '../utils/firebaseStorage.js';
-import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 import logActivity from '../utils/activityLogger.js';
 import eventBus from '../events/eventBus.js';
@@ -86,33 +86,39 @@ const createNotice = async (data, actor, files) => {
  * - Student: notices targeted to their class or them specifically
  */
 const listNotices = async (query, actor) => {
-  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query);
+  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['title', 'audienceType', 'status', 'publishedAt', 'createdAt']);
   const { search, audienceType, classId, status } = query;
 
   const filter = { isDeleted: false };
   if (status) filter.status = status;
   if (audienceType) filter.audienceType = audienceType;
   if (classId) filter.classIds = classId;
-  if (search) filter.title = { $regex: search, $options: 'i' };
+  const constraints = [];
+  if (search) {
+    const searchRegex = buildSearchRegex(search);
+    constraints.push({ $or: [{ title: searchRegex }, { message: searchRegex }] });
+  }
 
   if (actor.role === 'teacher') {
     const assignedClassId = await getTeacherClassId(actor.userId);
-    filter.$or = [
+    constraints.push({ $or: [
       { audienceType: 'all_classes' },
       { classIds: assignedClassId },
-    ];
+    ] });
   } else if (actor.role === 'student') {
     const profile = await StudentProfile.findOne({ userId: actor.userId });
     if (profile && profile.classId) {
-      filter.$or = [
+      constraints.push({ $or: [
         { audienceType: 'all_classes' },
         { classIds: profile.classId },
         { studentIds: actor.userId },
-      ];
+      ] });
     } else {
       filter.audienceType = 'all_classes';
     }
   }
+
+  if (constraints.length) filter.$and = constraints;
 
   const [notices, total] = await Promise.all([
     Notice.find(filter).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit),
@@ -160,7 +166,7 @@ const updateNotice = async (noticeId, data, actor, files) => {
     delete updates.attachments;
   }
 
-  const updated = await Notice.findByIdAndUpdate(noticeId, updates, { returnDocument: 'after' });
+  const updated = await Notice.findByIdAndUpdate(noticeId, updates, { returnDocument: 'after', runValidators: true });
 
   logActivity({
     actorId: actor.userId, actorName: actor.userId, actorRole: actor.role,

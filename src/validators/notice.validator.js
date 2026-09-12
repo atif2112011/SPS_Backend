@@ -28,11 +28,11 @@ const updateNoticeSchema = z.object({
 });
 
 const listNoticesQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-  sortBy: z.string().optional(),
+  page: z.string().regex(/^\d+$/).optional(),
+  limit: z.string().regex(/^\d+$/).optional(),
+  sortBy: z.enum(['title', 'audienceType', 'status', 'publishedAt', 'createdAt']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
-  search: z.string().optional(),
+  search: z.string().trim().max(100).optional(),
   audienceType: z.enum(['all_classes', 'specific_classes', 'specific_students']).optional(),
   classId: objectIdSchema.optional(),
   status: z.enum(['active', 'archived']).optional(),

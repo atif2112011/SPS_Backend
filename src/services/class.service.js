@@ -2,7 +2,7 @@ import Class from '../models/Class.model.js';
 import User from '../models/User.model.js';
 import StudentProfile from '../models/StudentProfile.model.js';
 import TeacherProfile from '../models/TeacherProfile.model.js';
-import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 
 const appError = (message, statusCode, errorCode) => {
@@ -36,15 +36,17 @@ const createClass = async (data) => {
  * List classes with pagination and search.
  */
 const listClasses = async (query) => {
-  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query);
+  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['className', 'section', 'academicYear', 'createdAt']);
   const { search, academicYear } = query;
 
   const filter = { isDeleted: false };
   if (academicYear) filter.academicYear = academicYear;
   if (search) {
+    const searchRegex = buildSearchRegex(search);
     filter.$or = [
-      { className: { $regex: search, $options: 'i' } },
-      { section: { $regex: search, $options: 'i' } },
+      { className: searchRegex },
+      { section: searchRegex },
+      { academicYear: searchRegex },
     ];
   }
 
@@ -122,6 +124,12 @@ const manageMembers = async (classId, action, studentIds) => {
   if (action === 'add') {
     // Filter already-in-class to avoid duplicates
     const newIds = studentIds.filter(id => !classDoc.studentIds.map(s => s.toString()).includes(id.toString()));
+    if (newIds.length > 0) {
+      await Class.updateMany(
+        { _id: { $ne: classId }, studentIds: { $in: newIds }, isDeleted: false },
+        { $pull: { studentIds: { $in: newIds } } }
+      );
+    }
     classDoc.studentIds.push(...newIds);
     // Update each student's classId in their profile
     await StudentProfile.updateMany({ userId: { $in: newIds } }, { classId });
@@ -146,15 +154,22 @@ const assignTeacher = async (classId, teacherId) => {
   const teacher = await User.findOne({ _id: teacherId, role: 'teacher', status: 'active' });
   if (!teacher) throw appError('Teacher not found', 404, ERROR_CODES.NOT_FOUND);
 
+  const teacherProfile = await TeacherProfile.findOne({ userId: teacherId });
+  if (!teacherProfile) throw appError('Teacher profile not found', 404, ERROR_CODES.NOT_FOUND);
+
   // Remove previous teacher's class assignment if different
   if (classDoc.classTeacherId && classDoc.classTeacherId.toString() !== teacherId.toString()) {
     await TeacherProfile.findOneAndUpdate({ userId: classDoc.classTeacherId }, { assignedClassId: null });
   }
 
+  if (teacherProfile.assignedClassId && teacherProfile.assignedClassId.toString() !== classId.toString()) {
+    await Class.findByIdAndUpdate(teacherProfile.assignedClassId, { classTeacherId: null }, { runValidators: true });
+  }
+
   classDoc.classTeacherId = teacherId;
   await classDoc.save();
 
-  await TeacherProfile.findOneAndUpdate({ userId: teacherId }, { assignedClassId: classId }, { upsert: true });
+  await TeacherProfile.findOneAndUpdate({ userId: teacherId }, { assignedClassId: classId }, { runValidators: true });
 
   return classDoc;
 };

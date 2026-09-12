@@ -1,7 +1,18 @@
 import mongoose from 'mongoose';
 
 const subjectMarkSchema = new mongoose.Schema({
-  subject: String, marksObtained: Number, totalMarks: Number, grade: String,
+  subject: { type: String, required: true, trim: true },
+  marksObtained: {
+    type: Number,
+    required: true,
+    min: 0,
+    validate: {
+      validator(value) { return !this.totalMarks || value <= this.totalMarks; },
+      message: 'Marks obtained cannot exceed total marks',
+    },
+  },
+  totalMarks: { type: Number, required: true, min: 1 },
+  grade: { type: String, trim: true },
 }, { _id: false });
 
 const resultSchema = new mongoose.Schema({
@@ -21,5 +32,9 @@ resultSchema.index({ studentId: 1 });
 resultSchema.index({ classId: 1 });
 resultSchema.index({ examName: 1, academicYear: 1 });
 resultSchema.index({ isDeleted: 1 });
+resultSchema.index(
+  { studentId: 1, classId: 1, examName: 1, academicYear: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } }
+);
 
 export default mongoose.model('Result', resultSchema);

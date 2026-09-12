@@ -6,6 +6,7 @@ import ERROR_CODES from '../constants/errorCodes.js';
 import logActivity from '../utils/activityLogger.js';
 import eventBus from '../events/eventBus.js';
 import EVENTS from '../constants/events.js';
+import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -39,8 +40,15 @@ const createResult = async (data, actor) => {
     }
   }
 
-  const student = await User.findById(studentId);
+  const [student, classDoc] = await Promise.all([
+    User.findOne({ _id: studentId, role: 'student', status: { $ne: 'deleted' } }),
+    Class.findOne({ _id: classId, isDeleted: false }),
+  ]);
   if (!student) throw appError('Student not found', 404, ERROR_CODES.NOT_FOUND);
+  if (!classDoc) throw appError('Class not found', 404, ERROR_CODES.NOT_FOUND);
+
+  const existing = await Result.findOne({ studentId, classId, examName, academicYear, isDeleted: false });
+  if (existing) throw appError('Result already exists for this student, class, exam, and academic year', 409, ERROR_CODES.DUPLICATE_ENTRY);
 
   const result = await Result.create({
     studentId, classId, examName, academicYear, subjectMarks, overallGrade, rank, remarks,
@@ -61,7 +69,7 @@ const createResult = async (data, actor) => {
 /**
  * GET /results/student/:studentId
  */
-const listStudentResults = async (studentId, actor) => {
+const listStudentResults = async (studentId, query, actor) => {
   if (actor.role === 'student' && actor.userId !== studentId) {
     throw appError('Access denied', 403, ERROR_CODES.SCOPE_VIOLATION);
   }
@@ -74,8 +82,20 @@ const listStudentResults = async (studentId, actor) => {
     }
   }
 
-  const results = await Result.find({ studentId, isDeleted: false }).sort({ createdAt: -1 });
-  return results;
+  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['examName', 'academicYear', 'rank', 'createdAt']);
+  const filter = { studentId, isDeleted: false };
+  if (query.academicYear) filter.academicYear = query.academicYear;
+  if (query.examName) filter.examName = query.examName;
+  if (query.search) {
+    const searchRegex = buildSearchRegex(query.search);
+    filter.$or = [{ examName: searchRegex }, { academicYear: searchRegex }, { remarks: searchRegex }, { overallGrade: searchRegex }, { 'subjectMarks.subject': searchRegex }];
+  }
+
+  const [results, total] = await Promise.all([
+    Result.find(filter).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit),
+    Result.countDocuments(filter),
+  ]);
+  return { results, pagination: buildPaginationMeta(total, page, limit) };
 };
 
 /**
@@ -89,7 +109,7 @@ const updateResult = async (resultId, data, actor) => {
     throw appError('You can only edit your own results', 403, ERROR_CODES.SCOPE_VIOLATION);
   }
 
-  const updated = await Result.findByIdAndUpdate(resultId, data, { returnDocument: 'after' });
+  const updated = await Result.findByIdAndUpdate(resultId, data, { returnDocument: 'after', runValidators: true });
 
   logActivity({
     actorId: actor.userId, actorName: actor.userId, actorRole: actor.role,

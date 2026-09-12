@@ -8,10 +8,11 @@ const registerDeviceSchema = z.object({
 });
 
 const listNotificationsQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-  sortBy: z.string().optional(),
+  page: z.string().regex(/^\d+$/).optional(),
+  limit: z.string().regex(/^\d+$/).optional(),
+  sortBy: z.enum(['title', 'type', 'isRead', 'sentAt', 'createdAt']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
+  search: z.string().trim().max(100).optional(),
   isRead: z.enum(['true', 'false']).optional(),
   type: z.enum(['notice', 'assignment', 'timetable', 'reportCard', 'result', 'reminder']).optional(),
 });

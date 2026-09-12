@@ -13,5 +13,9 @@ const classSchema = new mongoose.Schema({
 classSchema.index({ classTeacherId: 1 });
 classSchema.index({ academicYear: 1 });
 classSchema.index({ isDeleted: 1 });
+classSchema.index(
+  { className: 1, section: 1, academicYear: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } }
+);
 
 export default mongoose.model('Class', classSchema);

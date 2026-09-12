@@ -7,7 +7,7 @@ import ReportCard from '../models/ReportCard.model.js';
 import Result from '../models/Result.model.js';
 import Notification from '../models/Notification.model.js';
 import ActivityLog from '../models/ActivityLog.model.js';
-import { parsePagination, buildPaginationMeta } from '../utils/paginationHelper.js';
+import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
 
 const getOverviewMetrics = async () => {
   const now = new Date();
@@ -72,12 +72,21 @@ const getOverviewMetrics = async () => {
 };
 
 const listActivityLogs = async (query) => {
-  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query);
+  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['actorName', 'actorRole', 'actionType', 'entityType', 'createdAt']);
   const filter = {};
 
   if (query.actorRole) filter.actorRole = query.actorRole;
   if (query.actionType) filter.actionType = query.actionType;
   if (query.entityType) filter.entityType = query.entityType;
+  if (query.search) {
+    const searchRegex = buildSearchRegex(query.search);
+    filter.$or = [
+      { actorName: searchRegex },
+      { actionType: searchRegex },
+      { entityType: searchRegex },
+      { targetName: searchRegex },
+    ];
+  }
 
   const [logs, total] = await Promise.all([
     ActivityLog.find(filter).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit),

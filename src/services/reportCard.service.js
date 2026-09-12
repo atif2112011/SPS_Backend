@@ -7,6 +7,7 @@ import ERROR_CODES from '../constants/errorCodes.js';
 import logActivity from '../utils/activityLogger.js';
 import eventBus from '../events/eventBus.js';
 import EVENTS from '../constants/events.js';
+import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -51,8 +52,12 @@ const createReportCard = async (data, actor, files) => {
   const existing = await ReportCard.findOne({ studentId, classId, term, academicYear, isDeleted: false });
   if (existing) throw appError('Report card already exists for this student, class, term, and academic year', 409, ERROR_CODES.DUPLICATE_ENTRY);
 
-  const student = await User.findById(studentId);
+  const [student, classDoc] = await Promise.all([
+    User.findOne({ _id: studentId, role: 'student', status: { $ne: 'deleted' } }),
+    Class.findOne({ _id: classId, isDeleted: false }),
+  ]);
   if (!student) throw appError('Student not found', 404, ERROR_CODES.NOT_FOUND);
+  if (!classDoc) throw appError('Class not found', 404, ERROR_CODES.NOT_FOUND);
 
   const attachments = await uploadAttachments(files, 'report-cards');
 
@@ -75,7 +80,7 @@ const createReportCard = async (data, actor, files) => {
 /**
  * GET /report-cards/student/:studentId
  */
-const listStudentReportCards = async (studentId, actor) => {
+const listStudentReportCards = async (studentId, query, actor) => {
   // Student can only see own report cards
   if (actor.role === 'student' && actor.userId !== studentId) {
     throw appError('Access denied', 403, ERROR_CODES.SCOPE_VIOLATION);
@@ -89,8 +94,20 @@ const listStudentReportCards = async (studentId, actor) => {
     }
   }
 
-  const reportCards = await ReportCard.find({ studentId, isDeleted: false }).sort({ createdAt: -1 });
-  return reportCards;
+  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['term', 'academicYear', 'createdAt']);
+  const filter = { studentId, isDeleted: false };
+  if (query.academicYear) filter.academicYear = query.academicYear;
+  if (query.term) filter.term = query.term;
+  if (query.search) {
+    const searchRegex = buildSearchRegex(query.search);
+    filter.$or = [{ term: searchRegex }, { academicYear: searchRegex }, { remarks: searchRegex }, { 'marks.subject': searchRegex }];
+  }
+
+  const [reportCards, total] = await Promise.all([
+    ReportCard.find(filter).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit),
+    ReportCard.countDocuments(filter),
+  ]);
+  return { reportCards, pagination: buildPaginationMeta(total, page, limit) };
 };
 
 /**
@@ -111,7 +128,7 @@ const updateReportCard = async (reportCardId, data, actor, files) => {
     delete updates.attachments;
   }
 
-  const updated = await ReportCard.findByIdAndUpdate(reportCardId, updates, { returnDocument: 'after' });
+  const updated = await ReportCard.findByIdAndUpdate(reportCardId, updates, { returnDocument: 'after', runValidators: true });
 
   logActivity({
     actorId: actor.userId, actorName: actor.userId, actorRole: actor.role,

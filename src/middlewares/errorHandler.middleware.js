@@ -21,6 +21,15 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  if (err.name === 'CastError' || (err instanceof SyntaxError && err.status === 400 && 'body' in err)) {
+    return res.status(400).json({
+      success: false,
+      message: err.name === 'CastError' ? `Invalid ${err.path || 'identifier'}` : 'Invalid JSON request body',
+      errorCode: ERROR_CODES.VALIDATION_ERROR,
+      traceId,
+    });
+  }
+
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue || {})[0];
     return res.status(409).json({
