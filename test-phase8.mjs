@@ -1,7 +1,5 @@
 import dotenv from 'dotenv';
 dotenv.config();
-process.env.RATE_LIMIT_MAX = '10000';
-process.env.RATE_LIMIT_WINDOW_MS = '1000';
 
 import mongoose from 'mongoose';
 import User from './src/models/User.model.js';

@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
 import requestContext from './middlewares/requestContext.middleware.js';
 import errorHandler from './middlewares/errorHandler.middleware.js';
 import routes from './routes/index.js';
@@ -28,14 +27,6 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 
 app.use(morgan('combined', {
   stream: { write: (msg) => logger.http(msg.trim()) },
-}));
-
-app.use(rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, message: 'Too many requests, please try again later.' },
 }));
 
 if (isVercelRuntime()) {
