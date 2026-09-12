@@ -6,6 +6,7 @@ import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils
 import { sendPushToTokens } from './fcm.service.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 import logger from '../config/logger.js';
+import { syncUnreadNoticeMetric } from './dashboard.service.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -53,6 +54,9 @@ const markNotificationRead = async (notificationId, actor) => {
   );
 
   if (!notification) throw appError('Notification not found', 404, ERROR_CODES.NOT_FOUND);
+  if (actor.role === 'student' && notification.type === 'notice') {
+    await syncUnreadNoticeMetric(actor.userId);
+  }
   return notification;
 };
 
@@ -62,7 +66,21 @@ const markAllRead = async (actor) => {
     { isRead: true }
   );
 
+  if (actor.role === 'student') await syncUnreadNoticeMetric(actor.userId);
+
   return { modifiedCount: result.modifiedCount || 0 };
+};
+
+const markEntityRead = async (entityType, entityId, actor) => {
+  const result = await Notification.updateMany(
+    { recipientUserId: actor.userId, entityType, entityId, isRead: false },
+    { isRead: true }
+  );
+  const metrics = actor.role === 'student'
+    ? await syncUnreadNoticeMetric(actor.userId)
+    : undefined;
+
+  return { modifiedCount: result.modifiedCount || 0, metrics };
 };
 
 const getStudentRecipientsForClassIds = async (classIds) => {
@@ -121,6 +139,14 @@ const createAndSendNotifications = async ({ recipients, title, body, type, entit
     data: { type, entityType, entityId },
   });
 
+  if (type === 'notice' && createdDocs.length > 0) {
+    const createdRecipientIds = uniqueStrings(createdDocs.map((notification) => notification.recipientUserId));
+    await User.updateMany(
+      { _id: { $in: createdRecipientIds }, role: 'student' },
+      { $inc: { 'metrics.unreadNotices': 1 } }
+    );
+  }
+
   return { createdCount: createdDocs.length, push };
 };
 
@@ -133,5 +159,5 @@ const notifyFromEvent = async (payload) => {
   }
 };
 
-export { registerDevice, listNotifications, markNotificationRead, markAllRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };
-export default { registerDevice, listNotifications, markNotificationRead, markAllRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };
+export { registerDevice, listNotifications, markNotificationRead, markAllRead, markEntityRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };
+export default { registerDevice, listNotifications, markNotificationRead, markAllRead, markEntityRead, getStudentRecipientsForClassIds, resolveStudentRecipients, createAndSendNotifications, notifyFromEvent };

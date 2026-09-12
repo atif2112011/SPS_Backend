@@ -12,6 +12,7 @@ import reportCardRoutes from './report-card.routes.js';
 import resultRoutes from './result.routes.js';
 import notificationRoutes from './notification.routes.js';
 import adminRoutes from './admin.routes.js';
+import dashboardRoutes from './dashboard.routes.js';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.use('/report-cards', reportCardRoutes);
 router.use('/results', resultRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 // Future modules:
 

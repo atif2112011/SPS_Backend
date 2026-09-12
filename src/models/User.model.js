@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 import ROLES from '../constants/roles.js';
 
+const metricsSchema = new mongoose.Schema({
+  dueAssignments: { type: Number, default: 0, min: 0 },
+  unreadNotices: { type: Number, default: 0, min: 0 },
+}, { _id: false });
+
 const userSchema = new mongoose.Schema(
   {
     role: {
@@ -31,6 +36,7 @@ const userSchema = new mongoose.Schema(
     profileImage: { type: String },
     lastLoginAt: { type: Date },
     refreshTokenVersion: { type: Number, default: 0 },
+    metrics: { type: metricsSchema, default: () => ({}) },
   },
   { timestamps: true }
 );

@@ -60,6 +60,7 @@ const login = async (username, password, deviceInfo) => {
       role: user.role,
       email: user.email,
       profileImage: user.profileImage,
+      metrics: user.metrics,
     },
   };
 };
@@ -68,7 +69,11 @@ const refresh = async (oldRefreshToken) => {
   const decoded = verifyRefreshToken(oldRefreshToken);
   const tokenHash = hashToken(oldRefreshToken);
 
-  const session = await RefreshToken.findOne({ tokenHash, revokedAt: null });
+  const session = await RefreshToken.findOneAndUpdate(
+    { tokenHash, revokedAt: null },
+    { $set: { revokedAt: new Date() } },
+    { returnDocument: 'before' }
+  );
   if (!session) {
     await RefreshToken.updateMany(
       { userId: decoded.userId },
@@ -87,9 +92,6 @@ const refresh = async (oldRefreshToken) => {
     err.errorCode = 'TOKEN_INVALID';
     throw err;
   }
-
-  session.revokedAt = new Date();
-  await session.save();
 
   const newAccessToken = signAccessToken({ userId: user._id, role: user.role });
   const newRefreshToken = signRefreshToken({ userId: user._id, tokenVersion: user.refreshTokenVersion });

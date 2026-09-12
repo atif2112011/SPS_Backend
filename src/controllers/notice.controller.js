@@ -31,6 +31,11 @@ const getNoticeById = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Notice fetched', data: notice });
 });
 
+const markNoticeRead = asyncWrapper(async (req, res) => {
+  const result = await noticeService.markNoticeRead(req.params.id, req.user);
+  sendSuccess(res, { message: 'Notice marked as read', data: result });
+});
+
 /**
  * PATCH /notices/:id
  * Body: updateNoticeSchema | files: images[]
@@ -50,5 +55,5 @@ const deleteNotice = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Notice deleted successfully' });
 });
 
-export { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };
-export default { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };
+export { createNotice, listNotices, getNoticeById, markNoticeRead, updateNotice, deleteNotice };
+export default { createNotice, listNotices, getNoticeById, markNoticeRead, updateNotice, deleteNotice };

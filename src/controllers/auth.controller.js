@@ -17,7 +17,7 @@ const clearRefreshCookie = (res) => {
 };
 
 const login = asyncWrapper(async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, clientType } = req.body;
   const deviceInfo = req.headers['user-agent'] || 'unknown';
 
   const result = await authService.login(username, password, deviceInfo);
@@ -28,13 +28,15 @@ const login = asyncWrapper(async (req, res) => {
     message: 'Login successful',
     data: {
       accessToken: result.accessToken,
+      ...(clientType === 'mobile' ? { refreshToken: result.refreshToken } : {}),
       user: result.user,
     },
   });
 });
 
 const refresh = asyncWrapper(async (req, res) => {
-  const oldRefreshToken = req.cookies?.refreshToken;
+  const bodyRefreshToken = req.body?.refreshToken;
+  const oldRefreshToken = bodyRefreshToken || req.cookies?.refreshToken;
 
   if (!oldRefreshToken) {
     return sendError(res, {
@@ -51,12 +53,15 @@ const refresh = asyncWrapper(async (req, res) => {
 
   sendSuccess(res, {
     message: 'Token refreshed',
-    data: { accessToken: result.accessToken },
+    data: {
+      accessToken: result.accessToken,
+      ...(bodyRefreshToken || req.body?.clientType === 'mobile' ? { refreshToken: result.refreshToken } : {}),
+    },
   });
 });
 
 const logout = asyncWrapper(async (req, res) => {
-  const refreshToken = req.cookies?.refreshToken;
+  const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
   await authService.logout(refreshToken);
 
   clearRefreshCookie(res);

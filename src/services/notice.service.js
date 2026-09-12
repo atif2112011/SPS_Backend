@@ -7,6 +7,7 @@ import ERROR_CODES from '../constants/errorCodes.js';
 import logActivity from '../utils/activityLogger.js';
 import eventBus from '../events/eventBus.js';
 import EVENTS from '../constants/events.js';
+import notificationService from './notification.service.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -144,7 +145,26 @@ const getNoticeById = async (noticeId, actor) => {
     if (!isAccessible) throw appError('Access denied', 403, ERROR_CODES.SCOPE_VIOLATION);
   }
 
+  if (actor.role === 'student') {
+    const profile = await StudentProfile.findOne({ userId: actor.userId }).select('classId').lean();
+    const isAccessible = notice.audienceType === 'all_classes'
+      || notice.studentIds.map(String).includes(actor.userId.toString())
+      || (profile?.classId && notice.classIds.map(String).includes(profile.classId.toString()));
+    if (!isAccessible) throw appError('Access denied', 403, ERROR_CODES.SCOPE_VIOLATION);
+  }
+
   return notice;
+};
+
+const markNoticeRead = async (noticeId, actor) => {
+  const notice = await getNoticeById(noticeId, actor);
+  const result = await notificationService.markEntityRead('Notice', notice._id, actor);
+  return {
+    noticeId: notice._id,
+    isRead: true,
+    modifiedCount: result.modifiedCount,
+    metrics: result.metrics,
+  };
 };
 
 /**
@@ -196,5 +216,5 @@ const deleteNotice = async (noticeId, actor) => {
   });
 };
 
-export { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };
-export default { createNotice, listNotices, getNoticeById, updateNotice, deleteNotice };
+export { createNotice, listNotices, getNoticeById, markNoticeRead, updateNotice, deleteNotice };
+export default { createNotice, listNotices, getNoticeById, markNoticeRead, updateNotice, deleteNotice };

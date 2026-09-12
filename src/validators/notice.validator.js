@@ -38,5 +38,9 @@ const listNoticesQuerySchema = z.object({
   status: z.enum(['active', 'archived']).optional(),
 });
 
-export { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema };
-export default { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema };
+const noticeIdParamSchema = z.object({
+  id: objectIdSchema,
+});
+
+export { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema, noticeIdParamSchema };
+export default { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema, noticeIdParamSchema };
