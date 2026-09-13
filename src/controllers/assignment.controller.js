@@ -4,7 +4,7 @@ import asyncWrapper from '../utils/asyncWrapper.js';
 
 /**
  * POST /assignments
- * Body: createAssignmentSchema | files: images[]
+ * Body: createAssignmentSchema | attachments: images[] (multipart field retained for compatibility)
  * Access: admin, teacher
  */
 const createAssignment = asyncWrapper(async (req, res) => {
@@ -33,12 +33,17 @@ const getAssignmentById = asyncWrapper(async (req, res) => {
 
 /**
  * PATCH /assignments/:id
- * Body: updateAssignmentSchema | files: images[]
+ * Body: updateAssignmentSchema | attachments: images[] (multipart field retained for compatibility)
  * Access: admin, teacher (own assignments)
  */
 const updateAssignment = asyncWrapper(async (req, res) => {
   const assignment = await assignmentService.updateAssignment(req.params.id, req.body, req.user, req.files || []);
   sendSuccess(res, { message: 'Assignment updated successfully', data: assignment });
+});
+
+const removeAssignmentAttachment = asyncWrapper(async (req, res) => {
+  const assignment = await assignmentService.removeAssignmentAttachment(req.params.id, req.body.path, req.user);
+  sendSuccess(res, { message: 'Attachment removed successfully', data: assignment });
 });
 
 /**
@@ -50,5 +55,5 @@ const deleteAssignment = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Assignment deleted successfully' });
 });
 
-export { createAssignment, listAssignments, getAssignmentById, updateAssignment, deleteAssignment };
-export default { createAssignment, listAssignments, getAssignmentById, updateAssignment, deleteAssignment };
+export { createAssignment, listAssignments, getAssignmentById, updateAssignment, removeAssignmentAttachment, deleteAssignment };
+export default { createAssignment, listAssignments, getAssignmentById, updateAssignment, removeAssignmentAttachment, deleteAssignment };

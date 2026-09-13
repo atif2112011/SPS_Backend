@@ -10,7 +10,11 @@
     "test:phase8": "node test-phase8.mjs",
     "test:dashboard": "node test-dashboard.mjs",
     "test:refresh": "node test-refresh-flow.mjs",
-    "test:notifications": "node test-notification-system.mjs"
+    "test:notifications": "node test-notification-system.mjs",
+    "test:notification-events": "node test-notification-events.mjs",
+    "test:teacher-app": "node test-teacher-app.mjs",
+    "test:uploads": "node test-upload-limits.mjs",
+    "test:release-validation": "node test-release-validation.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

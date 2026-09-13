@@ -16,13 +16,13 @@ const appError = (message, statusCode, errorCode) => {
  * Create a new class.
  */
 const createClass = async (data) => {
-  const { className, section, academicYear, classTeacherId } = data;
+  const { className, section, academicYear, progressionOrder, classTeacherId } = data;
 
   // Check for duplicate class+section+year
   const existing = await Class.findOne({ className, section, academicYear, isDeleted: false });
   if (existing) throw appError('Class with this name, section, and academic year already exists', 409, ERROR_CODES.DUPLICATE_ENTRY);
 
-  const classDoc = await Class.create({ className, section, academicYear, classTeacherId: classTeacherId || null });
+  const classDoc = await Class.create({ className, section, academicYear, progressionOrder, classTeacherId: classTeacherId || null });
 
   // If teacher assigned, update their profile
   if (classTeacherId) {
@@ -36,7 +36,7 @@ const createClass = async (data) => {
  * List classes with pagination and search.
  */
 const listClasses = async (query) => {
-  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['className', 'section', 'academicYear', 'createdAt']);
+  const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, ['className', 'section', 'academicYear', 'progressionOrder', 'createdAt']);
   const { search, academicYear } = query;
 
   const filter = { isDeleted: false };

@@ -127,7 +127,7 @@ $studentsR = Call4 GET "/students?search=student_test" $null $adminToken
 $studentUserId = ($studentsR.data | Where-Object { $_.username -eq "student_test" } | Select-Object -First 1)._id
 Test-Case "[T03] Student userId resolved" ([PSCustomObject]@{ success = ($null -ne $studentUserId); message = "userId: $studentUserId" }) $true
 
-$classR = Call4 POST "/classes" @{ className = "10-P4"; section = "A"; academicYear = "2025-26" } $adminToken
+$classR = Call4 POST "/classes" @{ className = "10-P4"; section = "A"; academicYear = "2025-26"; progressionOrder = 10 } $adminToken
 if ($classR.success) { $p4ClassId = $classR.data._id }
 Test-Case "[T04] Phase 4 class created" $classR $true "created"
 

@@ -21,6 +21,11 @@ const listStudentResults = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Results fetched', data: results, pagination });
 });
 
+const getResult = asyncWrapper(async (req, res) => {
+  const result = await resultService.getResult(req.params.id, req.user);
+  sendSuccess(res, { message: 'Result fetched', data: result });
+});
+
 /**
  * PATCH /results/:id
  * Body: updateResultSchema
@@ -40,5 +45,5 @@ const deleteResult = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Result deleted successfully' });
 });
 
-export { createResult, listStudentResults, updateResult, deleteResult };
-export default { createResult, listStudentResults, updateResult, deleteResult };
+export { createResult, getResult, listStudentResults, updateResult, deleteResult };
+export default { createResult, getResult, listStudentResults, updateResult, deleteResult };

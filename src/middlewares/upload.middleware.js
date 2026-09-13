@@ -1,8 +1,8 @@
 import multer from 'multer';
 import ERROR_CODES from '../constants/errorCodes.js';
+import { CONTENT_ATTACHMENT_MIME_TYPES, MAX_CONTENT_ATTACHMENTS, MAX_FILE_SIZE, MAX_REPORT_ATTACHMENTS } from '../constants/uploads.js';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 const storage = multer.memoryStorage();
 
@@ -17,13 +17,29 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+const contentAttachmentFilter = (req, file, cb) => {
+  if (CONTENT_ATTACHMENT_MIME_TYPES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    const err = new Error('File type not allowed. Allowed: JPEG, PNG, GIF, WebP, PDF, DOC, DOCX, TXT');
+    err.statusCode = 400;
+    err.errorCode = ERROR_CODES.VALIDATION_ERROR;
+    cb(err, false);
+  }
+};
+
 const limits = { fileSize: MAX_FILE_SIZE };
 
 const uploadImages = multer({ storage, fileFilter, limits }).array('images', 5);
-const uploadFiles = multer({ storage, fileFilter, limits }).array('files', 3);
+const uploadFiles = multer({ storage, fileFilter, limits: { ...limits, files: MAX_REPORT_ATTACHMENTS } }).array('files', MAX_REPORT_ATTACHMENTS);
 const uploadSingle = multer({ storage, fileFilter, limits }).single('image');
+const uploadContentAttachments = multer({
+  storage,
+  fileFilter: contentAttachmentFilter,
+  limits: { ...limits, files: MAX_CONTENT_ATTACHMENTS },
+}).array('images', MAX_CONTENT_ATTACHMENTS);
 
-const handleUpload = (multerMiddleware) => (req, res, next) => {
+const handleUpload = (multerMiddleware, maxFiles = MAX_CONTENT_ATTACHMENTS) => (req, res, next) => {
   multerMiddleware(req, res, (err) => {
     if (!err) return next();
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -32,8 +48,16 @@ const handleUpload = (multerMiddleware) => (req, res, next) => {
       e.errorCode = ERROR_CODES.VALIDATION_ERROR;
       return next(e);
     }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      const e = new Error(`A maximum of ${maxFiles} attachments is allowed`);
+      e.statusCode = 400;
+      e.errorCode = ERROR_CODES.VALIDATION_ERROR;
+      return next(e);
+    }
     if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-      const e = new Error('Unexpected file field');
+      const e = new Error(['images', 'files'].includes(err.field)
+        ? `A maximum of ${maxFiles} attachments is allowed`
+        : 'Unexpected file field');
       e.statusCode = 400;
       e.errorCode = ERROR_CODES.VALIDATION_ERROR;
       return next(e);
@@ -46,5 +70,14 @@ const handleUpload = (multerMiddleware) => (req, res, next) => {
   });
 };
 
-export { uploadImages, uploadFiles, uploadSingle, handleUpload };
-export default { uploadImages, uploadFiles, uploadSingle, handleUpload };
+export {
+  uploadImages,
+  uploadFiles,
+  uploadSingle,
+  uploadContentAttachments,
+  handleUpload,
+  MAX_FILE_SIZE,
+  MAX_CONTENT_ATTACHMENTS,
+  CONTENT_ATTACHMENT_MIME_TYPES,
+};
+export default { uploadImages, uploadFiles, uploadSingle, uploadContentAttachments, handleUpload };

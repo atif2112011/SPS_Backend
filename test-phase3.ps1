@@ -99,7 +99,7 @@ $studentUserId = ($studentsR.data | Where-Object { $_.username -eq "student_test
 Test-Case "[T04] Student userId resolved" ([PSCustomObject]@{ success = ($null -ne $studentUserId); message = "userId: $studentUserId" }) $true
 
 # ── [T05] Create class for Phase 3 ───────────────────────────────────────────
-$classR = Call3 POST "/classes" @{ className = "10-P3"; section = "A"; academicYear = "2025-26" } $adminToken
+$classR = Call3 POST "/classes" @{ className = "10-P3"; section = "A"; academicYear = "2025-26"; progressionOrder = 10 } $adminToken
 if ($classR.success) {
   $p3ClassId = $classR.data._id
 } else {

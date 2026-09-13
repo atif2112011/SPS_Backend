@@ -3,7 +3,7 @@ import TeacherProfile from '../models/TeacherProfile.model.js';
 import StudentProfile from '../models/StudentProfile.model.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 import logActivity from '../utils/activityLogger.js';
-import eventBus from '../events/eventBus.js';
+import { publishEvent } from '../events/eventBus.js';
 import EVENTS from '../constants/events.js';
 
 const appError = (message, statusCode, errorCode) => {
@@ -46,7 +46,7 @@ const createTimetable = async (data, actor) => {
     metadata: { classId },
   });
 
-  eventBus.emit(EVENTS.TIMETABLE_UPDATED, { timetableId: timetable._id, classId });
+  publishEvent(EVENTS.TIMETABLE_CREATED, { timetableId: timetable._id, classId });
 
   return timetable;
 };
@@ -99,7 +99,11 @@ const updateTimetable = async (timetableId, data, actor) => {
     metadata: { classId: timetable.classId },
   });
 
-  eventBus.emit(EVENTS.TIMETABLE_UPDATED, { timetableId, classId: timetable.classId });
+  publishEvent(EVENTS.TIMETABLE_UPDATED, {
+    timetableId,
+    classId: timetable.classId,
+    eventVersion: updated.updatedAt?.getTime(),
+  });
 
   return updated;
 };

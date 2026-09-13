@@ -1,13 +1,22 @@
 import { z } from 'zod';
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId');
+const objectIdArraySchema = z.preprocess((value) => {
+  if (typeof value !== 'string') return value;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [value];
+  } catch {
+    return [value];
+  }
+}, z.array(objectIdSchema));
 
 const createNoticeSchema = z.object({
   title: z.string().min(1).max(200).trim(),
   message: z.string().min(1).max(2000),
   audienceType: z.enum(['all_classes', 'specific_classes', 'specific_students']),
-  classIds: z.array(objectIdSchema).optional(),
-  studentIds: z.array(objectIdSchema).optional(),
+  classIds: objectIdArraySchema.optional(),
+  studentIds: objectIdArraySchema.optional(),
   status: z.enum(['active', 'archived']).optional(),
 }).refine((data) => {
   if (data.audienceType === 'specific_classes') return data.classIds && data.classIds.length > 0;
@@ -22,8 +31,8 @@ const updateNoticeSchema = z.object({
   title: z.string().min(1).max(200).trim().optional(),
   message: z.string().min(1).max(2000).optional(),
   audienceType: z.enum(['all_classes', 'specific_classes', 'specific_students']).optional(),
-  classIds: z.array(objectIdSchema).optional(),
-  studentIds: z.array(objectIdSchema).optional(),
+  classIds: objectIdArraySchema.optional(),
+  studentIds: objectIdArraySchema.optional(),
   status: z.enum(['active', 'archived']).optional(),
 });
 
@@ -36,11 +45,14 @@ const listNoticesQuerySchema = z.object({
   audienceType: z.enum(['all_classes', 'specific_classes', 'specific_students']).optional(),
   classId: objectIdSchema.optional(),
   status: z.enum(['active', 'archived']).optional(),
+  dateFrom: z.string().refine((value) => !Number.isNaN(Date.parse(value)), 'Invalid start date').optional(),
+  dateTo: z.string().refine((value) => !Number.isNaN(Date.parse(value)), 'Invalid end date').optional(),
 });
 
 const noticeIdParamSchema = z.object({
   id: objectIdSchema,
 });
+const removeAttachmentSchema = z.object({ path: z.string().trim().min(1).max(500) });
 
-export { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema, noticeIdParamSchema };
-export default { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema, noticeIdParamSchema };
+export { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema, noticeIdParamSchema, removeAttachmentSchema };
+export default { createNoticeSchema, updateNoticeSchema, listNoticesQuerySchema, noticeIdParamSchema, removeAttachmentSchema };

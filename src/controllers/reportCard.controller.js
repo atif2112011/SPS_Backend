@@ -21,6 +21,11 @@ const listStudentReportCards = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Report cards fetched', data: reportCards, pagination });
 });
 
+const getReportCard = asyncWrapper(async (req, res) => {
+  const reportCard = await reportCardService.getReportCard(req.params.id, req.user);
+  sendSuccess(res, { message: 'Report card fetched', data: reportCard });
+});
+
 /**
  * PATCH /report-cards/:id
  * Body: updateReportCardSchema | files: files[]
@@ -29,6 +34,11 @@ const listStudentReportCards = asyncWrapper(async (req, res) => {
 const updateReportCard = asyncWrapper(async (req, res) => {
   const reportCard = await reportCardService.updateReportCard(req.params.id, req.body, req.user, req.files || []);
   sendSuccess(res, { message: 'Report card updated successfully', data: reportCard });
+});
+
+const removeReportCardAttachment = asyncWrapper(async (req, res) => {
+  const reportCard = await reportCardService.removeReportCardAttachment(req.params.id, req.body.path, req.user);
+  sendSuccess(res, { message: 'Attachment removed successfully', data: reportCard });
 });
 
 /**
@@ -40,5 +50,5 @@ const deleteReportCard = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Report card deleted successfully' });
 });
 
-export { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };
-export default { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };
+export { createReportCard, getReportCard, listStudentReportCards, updateReportCard, removeReportCardAttachment, deleteReportCard };
+export default { createReportCard, getReportCard, listStudentReportCards, updateReportCard, removeReportCardAttachment, deleteReportCard };

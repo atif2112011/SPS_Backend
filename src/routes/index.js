@@ -14,6 +14,7 @@ import notificationRoutes from './notification.routes.js';
 import adminRoutes from './admin.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import internalRoutes from './internal.routes.js';
+import teacherPortalRoutes from './teacherPortal.routes.js';
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/internal', internalRoutes);
+router.use('/teacher', teacherPortalRoutes);
 
 // Future modules:
 

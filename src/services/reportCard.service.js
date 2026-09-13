@@ -1,13 +1,15 @@
 import ReportCard from '../models/ReportCard.model.js';
-import TeacherProfile from '../models/TeacherProfile.model.js';
 import Class from '../models/Class.model.js';
 import User from '../models/User.model.js';
-import { uploadFile } from '../utils/firebaseStorage.js';
+import StudentProfile from '../models/StudentProfile.model.js';
+import { deleteFile, uploadFile } from '../utils/firebaseStorage.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 import logActivity from '../utils/activityLogger.js';
-import eventBus from '../events/eventBus.js';
+import { publishEvent } from '../events/eventBus.js';
 import EVENTS from '../constants/events.js';
 import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
+import { assertStudentBelongsToTeacher, getTeacherContext } from './teacherContext.service.js';
+import { MAX_REPORT_ATTACHMENTS } from '../constants/uploads.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -17,16 +19,50 @@ const appError = (message, statusCode, errorCode) => {
 };
 
 const getTeacherClassId = async (userId) => {
-  const profile = await TeacherProfile.findOne({ userId });
-  if (!profile || !profile.assignedClassId) {
-    throw appError('Teacher has no assigned class', 400, ERROR_CODES.SCOPE_VIOLATION);
-  }
-  return profile.assignedClassId.toString();
+  const { classId } = await getTeacherContext(userId);
+  return classId.toString();
 };
 
 const uploadAttachments = async (files, folder) => {
   if (!files || files.length === 0) return [];
   return Promise.all(files.map((f) => uploadFile(f.buffer, f.originalname, f.mimetype, folder)));
+};
+
+const duplicateRecordError = (message) => {
+  const error = appError(message, 409, ERROR_CODES.DUPLICATE_ENTRY);
+  error.details = [
+    { field: 'term', message: 'This student already has a report card for the same class, term, and academic year' },
+    { field: 'academicYear', message: 'Choose a different term or academic year' },
+  ];
+  return error;
+};
+
+const teacherCanManageRecord = async (reportCard, teacherId) => {
+  const assignedClassId = await getTeacherClassId(teacherId);
+  if (String(reportCard.classId) !== assignedClassId) {
+    throw appError('Historical records can only be changed by an administrator or the teacher of the original class', 403, ERROR_CODES.SCOPE_VIOLATION);
+  }
+  await assertStudentBelongsToTeacher(reportCard.studentId, teacherId);
+};
+
+const normalizeReportCard = async (reportCard, actor) => {
+  const value = reportCard.toObject ? reportCard.toObject() : reportCard;
+  const studentId = value.studentId?._id || value.studentId;
+  const classId = value.classId?._id || value.classId;
+  const currentProfile = await StudentProfile.findOne({ userId: studentId }).populate('classId', 'className section academicYear').lean();
+  const assignedClassId = actor.role === 'teacher' ? await getTeacherClassId(actor.userId) : null;
+  return {
+    ...value,
+    student: value.studentId?._id ? value.studentId : null,
+    originalClass: value.classId?._id ? value.classId : null,
+    creator: value.createdBy?._id ? value.createdBy : null,
+    currentClass: currentProfile?.classId || null,
+    studentId: String(studentId),
+    classId: String(classId),
+    createdBy: value.createdBy?._id ? String(value.createdBy._id) : String(value.createdBy || ''),
+    isHistorical: Boolean(currentProfile?.classId && String(currentProfile.classId._id) !== String(classId)),
+    canManage: actor.role === 'admin' || (actor.role === 'teacher' && assignedClassId === String(classId)),
+  };
 };
 
 /**
@@ -49,8 +85,8 @@ const createReportCard = async (data, actor, files) => {
   }
 
   // Duplicate check
-  const existing = await ReportCard.findOne({ studentId, classId, term, academicYear, isDeleted: false });
-  if (existing) throw appError('Report card already exists for this student, class, term, and academic year', 409, ERROR_CODES.DUPLICATE_ENTRY);
+  const existing = await ReportCard.findOne({ studentId, classId, term, academicYear, isDeleted: false }).collation({ locale: 'en', strength: 2 });
+  if (existing) throw duplicateRecordError('Report card already exists for this student, class, term, and academic year');
 
   const [student, classDoc] = await Promise.all([
     User.findOne({ _id: studentId, role: 'student', status: { $ne: 'deleted' } }),
@@ -72,7 +108,7 @@ const createReportCard = async (data, actor, files) => {
     metadata: { studentId, classId, term, academicYear },
   });
 
-  eventBus.emit(EVENTS.REPORT_CARD_UPLOADED, { reportCardId: reportCard._id });
+  publishEvent(EVENTS.REPORT_CARD_UPLOADED, { reportCardId: reportCard._id });
 
   return reportCard;
 };
@@ -110,6 +146,20 @@ const listStudentReportCards = async (studentId, query, actor) => {
   return { reportCards, pagination: buildPaginationMeta(total, page, limit) };
 };
 
+const getReportCard = async (reportCardId, actor) => {
+  const reportCard = await ReportCard.findOne({ _id: reportCardId, isDeleted: false })
+    .populate('studentId', 'name username status')
+    .populate('classId', 'className section academicYear')
+    .populate('createdBy', 'name username role');
+  if (!reportCard) throw appError('Report card not found', 404, ERROR_CODES.NOT_FOUND);
+  const studentId = String(reportCard.studentId?._id || reportCard.studentId);
+  if (actor.role === 'student' && actor.userId !== studentId) {
+    throw appError('Access denied', 403, ERROR_CODES.SCOPE_VIOLATION);
+  }
+  if (actor.role === 'teacher') await assertStudentBelongsToTeacher(studentId, actor.userId);
+  return normalizeReportCard(reportCard, actor);
+};
+
 /**
  * PATCH /report-cards/:id
  */
@@ -117,8 +167,20 @@ const updateReportCard = async (reportCardId, data, actor, files) => {
   const reportCard = await ReportCard.findOne({ _id: reportCardId, isDeleted: false });
   if (!reportCard) throw appError('Report card not found', 404, ERROR_CODES.NOT_FOUND);
 
-  if (actor.role !== 'admin' && reportCard.createdBy.toString() !== actor.userId) {
-    throw appError('You can only edit your own report cards', 403, ERROR_CODES.SCOPE_VIOLATION);
+  if (actor.role === 'teacher') {
+    await teacherCanManageRecord(reportCard, actor.userId);
+  }
+
+  if (data.term || data.academicYear) {
+    const duplicate = await ReportCard.findOne({
+      _id: { $ne: reportCardId }, studentId: reportCard.studentId, classId: reportCard.classId,
+      term: data.term || reportCard.term, academicYear: data.academicYear || reportCard.academicYear, isDeleted: false,
+    }).collation({ locale: 'en', strength: 2 });
+    if (duplicate) throw duplicateRecordError('Another report card already uses this term and academic year');
+  }
+
+  if ((reportCard.attachments?.length || 0) + (files?.length || 0) > MAX_REPORT_ATTACHMENTS) {
+    throw appError(`A report card can have a maximum of ${MAX_REPORT_ATTACHMENTS} attachments`, 400, ERROR_CODES.VALIDATION_ERROR);
   }
 
   const newAttachments = await uploadAttachments(files, 'report-cards');
@@ -136,7 +198,29 @@ const updateReportCard = async (reportCardId, data, actor, files) => {
     metadata: { fields: Object.keys(data) },
   });
 
+  publishEvent(EVENTS.REPORT_CARD_UPDATED, {
+    reportCardId: updated._id,
+    eventVersion: updated.updatedAt?.getTime(),
+  });
+
   return updated;
+};
+
+const removeReportCardAttachment = async (reportCardId, path, actor) => {
+  const reportCard = await ReportCard.findOne({ _id: reportCardId, isDeleted: false });
+  if (!reportCard) throw appError('Report card not found', 404, ERROR_CODES.NOT_FOUND);
+  if (actor.role === 'teacher') await teacherCanManageRecord(reportCard, actor.userId);
+  const attachment = reportCard.attachments.find((item) => item.path === path);
+  if (!attachment) throw appError('Attachment not found on this report card', 404, ERROR_CODES.NOT_FOUND);
+  await deleteFile(path);
+  reportCard.attachments = reportCard.attachments.filter((item) => item.path !== path);
+  await reportCard.save();
+  logActivity({
+    actorId: actor.userId, actorName: actor.userId, actorRole: actor.role,
+    actionType: 'REMOVE_REPORT_CARD_ATTACHMENT', entityType: 'ReportCard', entityId: reportCardId,
+    metadata: { path },
+  });
+  return reportCard;
 };
 
 /**
@@ -146,8 +230,8 @@ const deleteReportCard = async (reportCardId, actor) => {
   const reportCard = await ReportCard.findOne({ _id: reportCardId, isDeleted: false });
   if (!reportCard) throw appError('Report card not found', 404, ERROR_CODES.NOT_FOUND);
 
-  if (actor.role !== 'admin' && reportCard.createdBy.toString() !== actor.userId) {
-    throw appError('You can only delete your own report cards', 403, ERROR_CODES.SCOPE_VIOLATION);
+  if (actor.role === 'teacher') {
+    await teacherCanManageRecord(reportCard, actor.userId);
   }
 
   await ReportCard.findByIdAndUpdate(reportCardId, { isDeleted: true });
@@ -158,5 +242,5 @@ const deleteReportCard = async (reportCardId, actor) => {
   });
 };
 
-export { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };
-export default { createReportCard, listStudentReportCards, updateReportCard, deleteReportCard };
+export { createReportCard, getReportCard, listStudentReportCards, updateReportCard, removeReportCardAttachment, deleteReportCard };
+export default { createReportCard, getReportCard, listStudentReportCards, updateReportCard, removeReportCardAttachment, deleteReportCard };

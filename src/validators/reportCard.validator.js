@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId');
+const parseJsonArray = (value) => {
+  if (typeof value !== 'string') return value;
+  try { return JSON.parse(value); } catch { return value; }
+};
 
 const markSchema = z.object({
   subject: z.string().min(1).max(100),
@@ -23,22 +27,24 @@ const listReportCardsQuerySchema = z.object({
 });
 
 const studentIdParamSchema = z.object({ studentId: objectIdSchema });
+const idParamSchema = z.object({ id: objectIdSchema });
+const removeAttachmentSchema = z.object({ path: z.string().trim().min(1).max(500) });
 
 const createReportCardSchema = z.object({
   studentId: objectIdSchema,
   classId: objectIdSchema,
-  term: z.string().min(1).max(50),
-  academicYear: z.string().min(4).max(10),
-  marks: z.array(markSchema).optional(),
+  term: z.string().trim().min(1).max(50),
+  academicYear: z.string().trim().min(4).max(10),
+  marks: z.preprocess(parseJsonArray, z.array(markSchema)).optional(),
   remarks: z.string().max(1000).optional(),
 });
 
 const updateReportCardSchema = z.object({
-  term: z.string().min(1).max(50).optional(),
-  academicYear: z.string().min(4).max(10).optional(),
-  marks: z.array(markSchema).optional(),
+  term: z.string().trim().min(1).max(50).optional(),
+  academicYear: z.string().trim().min(4).max(10).optional(),
+  marks: z.preprocess(parseJsonArray, z.array(markSchema)).optional(),
   remarks: z.string().max(1000).optional(),
 });
 
-export { createReportCardSchema, updateReportCardSchema, listReportCardsQuerySchema, studentIdParamSchema };
-export default { createReportCardSchema, updateReportCardSchema, listReportCardsQuerySchema, studentIdParamSchema };
+export { createReportCardSchema, updateReportCardSchema, listReportCardsQuerySchema, studentIdParamSchema, idParamSchema, removeAttachmentSchema };
+export default { createReportCardSchema, updateReportCardSchema, listReportCardsQuerySchema, studentIdParamSchema, idParamSchema, removeAttachmentSchema };

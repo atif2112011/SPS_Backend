@@ -4,7 +4,7 @@ import asyncWrapper from '../utils/asyncWrapper.js';
 
 /**
  * POST /notices
- * Body: createNoticeSchema | files: images[]
+ * Body: createNoticeSchema | attachments: images[] (multipart field retained for compatibility)
  * Access: admin, teacher
  */
 const createNotice = asyncWrapper(async (req, res) => {
@@ -38,12 +38,17 @@ const markNoticeRead = asyncWrapper(async (req, res) => {
 
 /**
  * PATCH /notices/:id
- * Body: updateNoticeSchema | files: images[]
+ * Body: updateNoticeSchema | attachments: images[] (multipart field retained for compatibility)
  * Access: admin, teacher (own notices)
  */
 const updateNotice = asyncWrapper(async (req, res) => {
   const notice = await noticeService.updateNotice(req.params.id, req.body, req.user, req.files || []);
   sendSuccess(res, { message: 'Notice updated successfully', data: notice });
+});
+
+const removeNoticeAttachment = asyncWrapper(async (req, res) => {
+  const notice = await noticeService.removeNoticeAttachment(req.params.id, req.body.path, req.user);
+  sendSuccess(res, { message: 'Attachment removed successfully', data: notice });
 });
 
 /**
@@ -55,5 +60,5 @@ const deleteNotice = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Notice deleted successfully' });
 });
 
-export { createNotice, listNotices, getNoticeById, markNoticeRead, updateNotice, deleteNotice };
-export default { createNotice, listNotices, getNoticeById, markNoticeRead, updateNotice, deleteNotice };
+export { createNotice, listNotices, getNoticeById, markNoticeRead, updateNotice, removeNoticeAttachment, deleteNotice };
+export default { createNotice, listNotices, getNoticeById, markNoticeRead, updateNotice, removeNoticeAttachment, deleteNotice };

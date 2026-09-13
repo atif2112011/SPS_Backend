@@ -130,11 +130,11 @@ Test-Case "[15] Unblock student" $r $true
 $r = Call2 POST "/classes" @{ className="Class 10" } -token $adminToken
 Test-Case "[16] Create class missing fields" $r $false "VALIDATION_ERROR"
 
-$r = Call2 POST "/classes" @{ className="Class 10"; section="A"; academicYear="2025-26" } -token $adminToken
+$r = Call2 POST "/classes" @{ className="Class 10"; section="A"; academicYear="2025-26"; progressionOrder=10 } -token $adminToken
 Test-Case "[17] Create class happy path" $r $true
 $classId = $r.data._id
 
-$r = Call2 POST "/classes" @{ className="Class 10"; section="A"; academicYear="2025-26" } -token $adminToken
+$r = Call2 POST "/classes" @{ className="Class 10"; section="A"; academicYear="2025-26"; progressionOrder=10 } -token $adminToken
 Test-Case "[18] Create class duplicate" $r $false "DUPLICATE_ENTRY"
 
 $r = Call2 GET "/classes?page=1&limit=10" -token $adminToken

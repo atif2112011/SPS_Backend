@@ -1,24 +1,10 @@
 import cron from 'node-cron';
 import Assignment from '../models/Assignment.model.js';
-import notificationService from '../services/notification.service.js';
 import logger from '../config/logger.js';
+import { publishEvent } from '../events/eventBus.js';
+import EVENTS from '../constants/events.js';
 
 let jobsStarted = false;
-
-const sendAssignmentReminder = async ({ assignment, label, title, body }) => {
-  const classRecipients = await notificationService.getStudentRecipientsForClassIds(assignment.classIds);
-  const recipients = [...classRecipients, ...assignment.studentIds.map(String)];
-
-  await notificationService.notifyFromEvent({
-    recipients,
-    title,
-    body,
-    type: 'reminder',
-    entityType: 'Assignment',
-    entityId: assignment._id,
-    dedupeKeyPrefix: `assignment:${assignment._id}:${label}`,
-  });
-};
 
 const runDailyAssignmentReminders = async () => {
   const now = new Date();
@@ -32,12 +18,7 @@ const runDailyAssignmentReminders = async () => {
   });
 
   for (const assignment of assignments) {
-    await sendAssignmentReminder({
-      assignment,
-      label: 'reminder1d',
-      title: 'Assignment due tomorrow',
-      body: assignment.title,
-    });
+    publishEvent(EVENTS.ASSIGNMENT_REMINDER_1D, { assignmentId: assignment._id });
   }
 };
 
@@ -52,12 +33,7 @@ const runHourlyAssignmentDueReminders = async () => {
   });
 
   for (const assignment of assignments) {
-    await sendAssignmentReminder({
-      assignment,
-      label: 'due',
-      title: 'Assignment due soon',
-      body: assignment.title,
-    });
+    publishEvent(EVENTS.ASSIGNMENT_DUE, { assignmentId: assignment._id });
   }
 };
 

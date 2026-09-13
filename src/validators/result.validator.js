@@ -23,12 +23,13 @@ const listResultsQuerySchema = z.object({
 });
 
 const studentIdParamSchema = z.object({ studentId: objectIdSchema });
+const idParamSchema = z.object({ id: objectIdSchema });
 
 const createResultSchema = z.object({
   studentId: objectIdSchema,
   classId: objectIdSchema,
-  examName: z.string().min(1).max(200),
-  academicYear: z.string().min(4).max(10),
+  examName: z.string().trim().min(1).max(200),
+  academicYear: z.string().trim().min(4).max(10),
   subjectMarks: z.array(subjectMarkSchema).optional(),
   overallGrade: z.string().max(5).optional(),
   rank: z.number().int().min(1).optional(),
@@ -36,13 +37,13 @@ const createResultSchema = z.object({
 });
 
 const updateResultSchema = z.object({
-  examName: z.string().min(1).max(200).optional(),
-  academicYear: z.string().min(4).max(10).optional(),
+  examName: z.string().trim().min(1).max(200).optional(),
+  academicYear: z.string().trim().min(4).max(10).optional(),
   subjectMarks: z.array(subjectMarkSchema).optional(),
   overallGrade: z.string().max(5).optional(),
   rank: z.number().int().min(1).optional(),
   remarks: z.string().max(1000).optional(),
 });
 
-export { createResultSchema, updateResultSchema, listResultsQuerySchema, studentIdParamSchema };
-export default { createResultSchema, updateResultSchema, listResultsQuerySchema, studentIdParamSchema };
+export { createResultSchema, updateResultSchema, listResultsQuerySchema, studentIdParamSchema, idParamSchema };
+export default { createResultSchema, updateResultSchema, listResultsQuerySchema, studentIdParamSchema, idParamSchema };

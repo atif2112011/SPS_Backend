@@ -28,5 +28,23 @@ const uploadFile = async (buffer, originalName, mimeType, folder) => {
   }
 };
 
-export { uploadFile };
-export default { uploadFile };
+const deleteFile = async (filePath) => {
+  if (!filePath || typeof filePath !== 'string') {
+    const error = new Error('A valid storage path is required');
+    error.statusCode = 400;
+    error.errorCode = ERROR_CODES.VALIDATION_ERROR;
+    throw error;
+  }
+  try {
+    const bucket = getStorage();
+    await bucket.file(filePath).delete({ ignoreNotFound: true });
+  } catch (err) {
+    const error = new Error('File removal failed: ' + err.message);
+    error.statusCode = 500;
+    error.errorCode = ERROR_CODES.UPLOAD_FAILED;
+    throw error;
+  }
+};
+
+export { deleteFile, uploadFile };
+export default { deleteFile, uploadFile };

@@ -10,14 +10,14 @@ const router = Router();
 
 router.use(authenticate);
 
-// GET /classes — admin + teacher
-router.get('/', authorizeRole('admin', 'teacher'), validate(listClassQuerySchema, 'query'), classController.listClasses);
+// GET /classes — admin; teachers use the scoped /teacher/class endpoint
+router.get('/', authorizeRole('admin'), validate(listClassQuerySchema, 'query'), classController.listClasses);
 
 // POST /classes — admin
 router.post('/', authorizeRole('admin'), validate(createClassSchema), classController.createClass);
 
-// GET /classes/:id — admin + teacher
-router.get('/:id', authorizeRole('admin', 'teacher'), classController.getClassById);
+// GET /classes/:id — admin
+router.get('/:id', authorizeRole('admin'), classController.getClassById);
 
 // PATCH /classes/:id — admin
 router.patch('/:id', authorizeRole('admin'), validate(updateClassSchema), classController.updateClass);
@@ -25,13 +25,13 @@ router.patch('/:id', authorizeRole('admin'), validate(updateClassSchema), classC
 // DELETE /classes/:id — admin
 router.delete('/:id', authorizeRole('admin'), classController.deleteClass);
 
-// PATCH /classes/:id/members — admin + teacher
-router.patch('/:id/members', authorizeRole('admin', 'teacher'), validate(manageMembersSchema), classController.manageMembers);
+// PATCH /classes/:id/members — admin; teachers use scoped student endpoints
+router.patch('/:id/members', authorizeRole('admin'), validate(manageMembersSchema), classController.manageMembers);
 
 // PATCH /classes/:id/teacher — admin
 router.patch('/:id/teacher', authorizeRole('admin'), validate(assignTeacherSchema), classController.assignTeacher);
 
-// GET /classes/:id/students — admin + teacher
-router.get('/:id/students', authorizeRole('admin', 'teacher'), classController.getClassStudents);
+// GET /classes/:id/students — admin
+router.get('/:id/students', authorizeRole('admin'), classController.getClassStudents);
 
 export default router;
