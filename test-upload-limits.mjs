@@ -26,8 +26,14 @@ try {
   const tooMany = await upload(Array.from({ length: 6 }, (_, index) => ({ name: `${index}.pdf`, type: 'application/pdf', bytes: 'test' })));
   if (tooMany.status !== 400 || !tooMany.body.message.includes('maximum of 5')) throw new Error('File-count limit was not enforced');
 
-  const tooLarge = await upload([{ name: 'large.pdf', type: 'application/pdf', bytes: new Uint8Array((5 * 1024 * 1024) + 1) }]);
-  if (tooLarge.status !== 400 || !tooLarge.body.message.includes('5MB')) throw new Error('File-size limit was not enforced');
+  const tooLarge = await upload([{ name: 'large.pdf', type: 'application/pdf', bytes: new Uint8Array((4 * 1024 * 1024) + 1) }]);
+  if (tooLarge.status !== 400 || !tooLarge.body.message.includes('4 MB')) throw new Error('File-size limit was not enforced');
+
+  const tooLargeCombined = await upload([
+    { name: 'part-1.pdf', type: 'application/pdf', bytes: new Uint8Array(2.1 * 1024 * 1024) },
+    { name: 'part-2.pdf', type: 'application/pdf', bytes: new Uint8Array(2.1 * 1024 * 1024) },
+  ]);
+  if (tooLargeCombined.status !== 400 || !tooLargeCombined.body.message.includes('Combined')) throw new Error('Combined request limit was not enforced');
 
   const invalid = await upload([{ name: 'archive.zip', type: 'application/zip', bytes: 'test' }]);
   if (invalid.status !== 400 || !invalid.body.message.includes('File type not allowed')) throw new Error('File-type limit was not enforced');
@@ -38,7 +44,7 @@ try {
   const tooManyReportFiles = await upload(Array.from({ length: 4 }, (_, index) => ({ name: `report-${index}.pdf`, type: 'application/pdf', bytes: 'test' })), '/report-upload', 'files');
   if (tooManyReportFiles.status !== 400 || !tooManyReportFiles.body.message.includes('maximum of 3')) throw new Error('Report attachment count limit was not enforced');
 
-  console.log('Upload limits passed: type, 5 MB per file, 5 content attachments, and 3 report attachments.');
+  console.log('Upload limits passed: type, 4 MB request-safe size, combined payload, 5 content attachments, and 3 report attachments.');
 } finally {
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 }

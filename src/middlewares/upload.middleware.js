@@ -1,6 +1,6 @@
 import multer from 'multer';
 import ERROR_CODES from '../constants/errorCodes.js';
-import { CONTENT_ATTACHMENT_MIME_TYPES, MAX_CONTENT_ATTACHMENTS, MAX_FILE_SIZE, MAX_REPORT_ATTACHMENTS } from '../constants/uploads.js';
+import { CONTENT_ATTACHMENT_MIME_TYPES, MAX_CONTENT_ATTACHMENTS, MAX_FILE_SIZE, MAX_REPORT_ATTACHMENTS, MAX_UPLOAD_BODY_BYTES } from '../constants/uploads.js';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
 
@@ -41,9 +41,18 @@ const uploadContentAttachments = multer({
 
 const handleUpload = (multerMiddleware, maxFiles = MAX_CONTENT_ATTACHMENTS) => (req, res, next) => {
   multerMiddleware(req, res, (err) => {
-    if (!err) return next();
+    if (!err) {
+      const totalBytes = (req.files || []).reduce((total, file) => total + (file.size || file.buffer?.length || 0), 0);
+      if (totalBytes > MAX_UPLOAD_BODY_BYTES) {
+        const e = new Error('Combined attachment size exceeds the 4 MB upload limit');
+        e.statusCode = 400;
+        e.errorCode = ERROR_CODES.VALIDATION_ERROR;
+        return next(e);
+      }
+      return next();
+    }
     if (err.code === 'LIMIT_FILE_SIZE') {
-      const e = new Error('File size exceeds 5MB limit');
+      const e = new Error('File size exceeds 4 MB limit');
       e.statusCode = 400;
       e.errorCode = ERROR_CODES.VALIDATION_ERROR;
       return next(e);
@@ -77,6 +86,7 @@ export {
   uploadContentAttachments,
   handleUpload,
   MAX_FILE_SIZE,
+  MAX_UPLOAD_BODY_BYTES,
   MAX_CONTENT_ATTACHMENTS,
   CONTENT_ATTACHMENT_MIME_TYPES,
 };
