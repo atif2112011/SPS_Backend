@@ -1,5 +1,7 @@
 import { createTimetableSchema } from './src/validators/timetable.validator.js';
 import { createReportCardSchema } from './src/validators/reportCard.validator.js';
+import { teacherCreateStudentSchema } from './src/validators/teacherPortal.validator.js';
+import { buildStudentCredentials } from './src/utils/studentCredentials.js';
 
 const objectId = '507f1f77bcf86cd799439011';
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -46,4 +48,20 @@ expectValid(createReportCardSchema.safeParse({
   marks: JSON.stringify([{ subject: 'Science', marksObtained: 80, totalMarks: 100 }]),
 }), 'Multipart report-card marks');
 
-console.log('Release validation passed: timetable shape/time/overlap rules and multipart report marks.');
+expectValid(teacherCreateStudentSchema.safeParse({
+  name: 'Aarav Sharma',
+  admissionNo: 'SPS-1001',
+}), 'Teacher student creation without client credentials');
+expectInvalid(teacherCreateStudentSchema.safeParse({
+  name: 'Aarav Sharma',
+  admissionNo: 'SPS-1001',
+  username: 'client.supplied',
+  password: 'ClientPassword123',
+}), 'Client-supplied student credentials');
+
+const generatedCredentials = buildStudentCredentials('Aarav Sharma', '48291', '73014');
+if (generatedCredentials.username !== 'aarav.sharma.48291' || generatedCredentials.password !== 'AaravSharma73014') {
+  throw new Error(`Generated student credentials have an unexpected shape: ${JSON.stringify(generatedCredentials)}`);
+}
+
+console.log('Release validation passed: timetable, multipart report marks, and server-generated student credentials.');

@@ -16,8 +16,6 @@ const teacherStudentListQuerySchema = z.object({
 });
 
 const teacherCreateStudentSchema = z.object({
-  username: z.string().min(3).max(50).trim().toLowerCase(),
-  password: z.string().min(8).max(64),
   name: z.string().min(1).max(100).trim(),
   phone: z.string().max(20).optional(),
   admissionNo: z.string().min(1).max(30).trim(),
@@ -27,7 +25,7 @@ const teacherCreateStudentSchema = z.object({
   guardianPhone: z.string().max(20).optional(),
   address: z.string().max(300).optional(),
   gender: z.enum(['male', 'female', 'other']).optional(),
-});
+}).strict();
 
 const teacherUpdateStudentSchema = z.object({
   name: z.string().min(1).max(100).trim().optional(),

@@ -55,12 +55,12 @@ const expectStatus = async (name, expected, path, options) => {
   return response.payload;
 };
 
-const login = async (username, expected = 200) => {
+const login = async (username, expected = 200, accountPassword = password) => {
   const payload = await expectStatus(
     `Login ${username}`,
     expected,
     '/auth/login',
-    { method: 'POST', body: { username, password, clientType: 'mobile' } },
+    { method: 'POST', body: { username, password: accountPassword, clientType: 'mobile' } },
   );
   return payload.data;
 };
@@ -161,22 +161,23 @@ try {
   await expectStatus('Unblock student', 200, `/teacher/class/students/${studentA._id}/unblock`, { method: 'POST', token: sourceToken });
   await login(studentA.username);
 
-  const onboardUsername = `${prefix}_onboarded`;
   const onboarded = await expectStatus('Onboard student into assigned class', 201, '/teacher/class/students', {
     method: 'POST', token: sourceToken,
     body: {
-      username: onboardUsername, password, name: 'Teacher Test Onboarded Student', admissionNo: `E2ENEW${runId}`,
+      name: 'Teacher Test Onboarded Student', admissionNo: `E2ENEW${runId}`,
       rollNo: '603', dob: '2014-07-20', guardianName: 'Onboard Parent', guardianPhone: '9000000004',
       phone: '9000000005', address: 'Onboard Test Address', gender: 'male',
     },
   });
   const onboardedId = onboarded.data.user._id;
-  await login(onboardUsername);
+  const onboardCredentials = onboarded.data.credentials;
+  check(onboardCredentials?.username === onboarded.data.user.username && /^\d{5}$/.test(onboardCredentials.password.slice(-5)),
+    'Student creation did not return generated credentials');
+  await login(onboardCredentials.username, 200, onboardCredentials.password);
 
-  const removableUsername = `${prefix}_removable`;
   const removable = await expectStatus('Create removable test student', 201, '/teacher/class/students', {
     method: 'POST', token: sourceToken,
-    body: { username: removableUsername, password, name: 'Teacher Test Removed Student', admissionNo: `E2ERM${runId}`, rollNo: '604' },
+    body: { name: 'Teacher Test Removed Student', admissionNo: `E2ERM${runId}`, rollNo: '604' },
   });
   await expectStatus('Soft-remove student from class', 200, `/teacher/class/students/${removable.data.user._id}`, {
     method: 'DELETE', token: sourceToken,
@@ -440,8 +441,8 @@ try {
     students: [
       { username: studentA.username, name: 'Teacher Test Student A Updated', class: destinationClass.className, status: 'blocked' },
       { username: studentB.username, name: studentB.name, class: otherClass.className, status: 'active' },
-      { username: onboardUsername, name: 'Teacher Test Onboarded Student', class: sourceClass.className, status: 'active' },
-      { username: removableUsername, name: 'Teacher Test Removed Student', class: null, status: 'active' },
+      { username: onboarded.data.user.username, name: 'Teacher Test Onboarded Student', class: sourceClass.className, status: 'active' },
+      { username: removable.data.user.username, name: 'Teacher Test Removed Student', class: null, status: 'active' },
       { username: outsideStudent.username, name: outsideStudent.name, class: destinationClass.className, status: 'active' },
     ],
     passed: results.length,

@@ -9,6 +9,7 @@ import StudentTransferRequest from '../models/StudentTransferRequest.model.js';
 import Timetable from '../models/Timetable.model.js';
 import User from '../models/User.model.js';
 import { hashPassword } from '../utils/hashUtils.js';
+import { buildStudentCredentials } from '../utils/studentCredentials.js';
 import { buildPaginationMeta, buildSearchRegex, parsePagination } from '../utils/paginationHelper.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 import { assertStudentBelongsToTeacher, getTeacherContext } from './teacherContext.service.js';
@@ -70,7 +71,17 @@ const normalizeTransferRequest = (request) => {
 
 const createStudent = async (teacherId, data) => {
   const { classDoc } = await getTeacherContext(teacherId);
-  const passwordHash = await hashPassword(data.password);
+  let credentials = null;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const candidate = buildStudentCredentials(data.name);
+    if (!await User.exists({ username: candidate.username })) {
+      credentials = candidate;
+      break;
+    }
+  }
+  if (!credentials) throw appError('Unable to generate a unique student username', 503, ERROR_CODES.INTERNAL_ERROR);
+
+  const passwordHash = await hashPassword(credentials.password);
   const session = await mongoose.startSession();
   let result;
 
@@ -78,7 +89,7 @@ const createStudent = async (teacherId, data) => {
     await session.withTransaction(async () => {
       const [user] = await User.create([{
         role: 'student',
-        username: data.username,
+        username: credentials.username,
         passwordHash,
         name: data.name,
         phone: data.phone,
@@ -106,7 +117,9 @@ const createStudent = async (teacherId, data) => {
       if (membership.matchedCount !== 1) {
         throw appError('The assigned class changed while creating the student', 409, ERROR_CODES.SCOPE_VIOLATION);
       }
-      result = { user: user.toObject(), profile: profile.toObject() };
+      const userData = user.toObject();
+      delete userData.passwordHash;
+      result = { user: userData, profile: profile.toObject(), credentials };
     });
     return result;
   } finally {
