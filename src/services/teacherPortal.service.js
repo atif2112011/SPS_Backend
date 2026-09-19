@@ -3,7 +3,7 @@ import Assignment from '../models/Assignment.model.js';
 import Class from '../models/Class.model.js';
 import Notice from '../models/Notice.model.js';
 import ReportCard from '../models/ReportCard.model.js';
-import Result from '../models/Result.model.js';
+import Assessment from '../models/Assessment.model.js';
 import StudentProfile from '../models/StudentProfile.model.js';
 import StudentTransferRequest from '../models/StudentTransferRequest.model.js';
 import Timetable from '../models/Timetable.model.js';
@@ -184,7 +184,7 @@ const getStudent = async (teacherId, studentId) => {
   const { studentProfile } = await assertStudentBelongsToTeacher(studentId, teacherId);
   const user = await User.findOne({ _id: studentId, role: 'student', status: { $ne: 'deleted' } });
   if (!user) throw appError('Student not found', 404, ERROR_CODES.NOT_FOUND);
-  const [pendingTransfer, reportCards, results, targetedAssignments, targetedNotices] = await Promise.all([
+  const [pendingTransfer, reportCards, assessments, targetedAssignments, targetedNotices] = await Promise.all([
     StudentTransferRequest.findOne({ studentId, status: 'pending' })
       .populate('studentId', 'name username status phone')
       .populate({ path: 'sourceClassId', select: 'className section academicYear progressionOrder classTeacherId', populate: { path: 'classTeacherId', select: 'name username' } })
@@ -192,14 +192,14 @@ const getStudent = async (teacherId, studentId) => {
       .populate('requestedBy', 'name username')
       .lean(),
     ReportCard.countDocuments({ studentId, isDeleted: false }),
-    Result.countDocuments({ studentId, isDeleted: false }),
+    Assessment.countDocuments({ studentId, isDeleted: false }),
     Assignment.countDocuments({ studentIds: studentId, status: 'active', isDeleted: false }),
     Notice.countDocuments({ studentIds: studentId, audienceType: 'specific_students', status: 'active', isDeleted: false }),
   ]);
   return {
     user,
     profile: studentProfile,
-    summary: { reportCards, results, targetedAssignments, targetedNotices },
+    summary: { reportCards, assessments, targetedAssignments, targetedNotices },
     pendingTransfer: normalizeTransferRequest(pendingTransfer),
   };
 };
@@ -506,7 +506,7 @@ const getDashboard = async (teacherId) => {
   const noticeScope = { $or: [{ audienceType: 'all_classes' }, { classIds: classId }, { createdBy: teacherId }] };
   const [
     activeStudents, blockedStudents, activeAssignments, upcomingAssignments, activeNotices,
-    reportCardsCreated, resultsCreated, pendingIncomingTransfers, timetable,
+    reportCardsCreated, assessmentsCreated, pendingIncomingTransfers, timetable,
     recentAssignments, recentNotices,
   ] = await Promise.all([
     User.countDocuments({ _id: { $in: classDoc.studentIds }, role: 'student', status: 'active' }),
@@ -515,7 +515,7 @@ const getDashboard = async (teacherId) => {
     Assignment.countDocuments({ ...assignmentScope, status: 'active', isDeleted: false, deadline: { $gte: now } }),
     Notice.countDocuments({ ...noticeScope, status: 'active', isDeleted: false }),
     ReportCard.countDocuments({ classId, isDeleted: false }),
-    Result.countDocuments({ classId, isDeleted: false }),
+    Assessment.countDocuments({ classId, isDeleted: false }),
     StudentTransferRequest.countDocuments({ destinationClassId: classId, status: 'pending' }),
     Timetable.findOne({ classId }).lean(),
     Assignment.find({ ...assignmentScope, isDeleted: false }).sort({ createdAt: -1 }).limit(5).lean(),
@@ -527,7 +527,7 @@ const getDashboard = async (teacherId) => {
     assignedClass: classDoc,
     metrics: {
       activeStudents, blockedStudents, activeAssignments, upcomingAssignments,
-      activeNotices, reportCardsCreated, resultsCreated, pendingIncomingTransfers,
+      activeNotices, reportCardsCreated, assessmentsCreated, pendingIncomingTransfers,
     },
     todayTimetable: timetable?.schedule?.find((entry) => entry.day === dayName)?.periods || [],
     recentAssignments,

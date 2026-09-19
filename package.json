@@ -14,7 +14,8 @@
     "test:notification-events": "node test-notification-events.mjs",
     "test:teacher-app": "node test-teacher-app.mjs",
     "test:uploads": "node test-upload-limits.mjs",
-    "test:release-validation": "node test-release-validation.mjs"
+    "test:release-validation": "node test-release-validation.mjs",
+    "migrate:results-to-assessments": "node scripts/migrate-results-to-assessments.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

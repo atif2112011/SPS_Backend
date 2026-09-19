@@ -39,7 +39,6 @@ const updateStudentSchema = z.object({
   guardianPhone: z.string().max(20).optional(),
   address: z.string().max(300).optional(),
   gender: z.enum(['male', 'female', 'other']).optional(),
-  resultSummary: z.string().max(500).optional(),
 }).refine(data => Object.keys(data).length > 0, { message: 'At least one field required' });
 
 const updateTeacherSchema = z.object({

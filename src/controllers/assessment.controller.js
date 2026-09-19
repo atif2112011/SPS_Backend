@@ -1,0 +1,11 @@
+import assessmentService from '../services/assessment.service.js';
+import { sendSuccess } from '../utils/responseHelper.js';
+import asyncWrapper from '../utils/asyncWrapper.js';
+const createAssessment = asyncWrapper(async (req, res) => sendSuccess(res, { message: 'Assessment created successfully', data: await assessmentService.createAssessment(req.body, req.user, req.files || []), statusCode: 201 }));
+const listStudentAssessments = asyncWrapper(async (req, res) => { const { assessments, pagination } = await assessmentService.listStudentAssessments(req.params.studentId, req.query, req.user); sendSuccess(res, { message: 'Assessments fetched', data: assessments, pagination }); });
+const getAssessment = asyncWrapper(async (req, res) => sendSuccess(res, { message: 'Assessment fetched', data: await assessmentService.getAssessment(req.params.id, req.user) }));
+const updateAssessment = asyncWrapper(async (req, res) => sendSuccess(res, { message: 'Assessment updated successfully', data: await assessmentService.updateAssessment(req.params.id, req.body, req.user, req.files || []) }));
+const removeAssessmentAttachment = asyncWrapper(async (req, res) => sendSuccess(res, { message: 'Attachment removed successfully', data: await assessmentService.removeAssessmentAttachment(req.params.id, req.body.path, req.user) }));
+const deleteAssessment = asyncWrapper(async (req, res) => { await assessmentService.deleteAssessment(req.params.id, req.user); sendSuccess(res, { message: 'Assessment deleted successfully' }); });
+export { createAssessment, listStudentAssessments, getAssessment, updateAssessment, removeAssessmentAttachment, deleteAssessment };
+export default { createAssessment, listStudentAssessments, getAssessment, updateAssessment, removeAssessmentAttachment, deleteAssessment };

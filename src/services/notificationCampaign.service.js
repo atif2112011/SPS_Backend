@@ -114,7 +114,7 @@ const createSystemCampaign = async ({ recipients, title, body, type, entityType,
     reminder: 'assignments',
     timetable: 'academics',
     reportCard: 'academics',
-    result: 'academics',
+    assessment: 'academics',
   };
   const campaign = await NotificationCampaign.create({
     title,

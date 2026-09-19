@@ -13,7 +13,7 @@ const registerNotificationListeners = () => {
       void notificationEventService.queueForEvent(eventName, payload).catch((err) => {
         logger.error('Notification event queueing failed', {
           eventName,
-          entityId: payload.noticeId || payload.assignmentId || payload.timetableId || payload.reportCardId || payload.resultId,
+          entityId: payload.noticeId || payload.assignmentId || payload.timetableId || payload.reportCardId || payload.assessmentId,
           error: err.message,
         });
       });

@@ -120,7 +120,7 @@ const getUserById = async (userId) => {
  * Update student core fields + profile fields.
  */
 const updateStudent = async (userId, data) => {
-  const { name, email, phone, rollNo, section, dob, guardianName, guardianPhone, address, gender, resultSummary } = data;
+  const { name, email, phone, rollNo, section, dob, guardianName, guardianPhone, address, gender } = data;
 
   const user = await User.findOne({ _id: userId, role: 'student', status: { $ne: 'deleted' } });
   if (!user) throw appError('Student not found', 404, ERROR_CODES.NOT_FOUND);
@@ -138,7 +138,6 @@ const updateStudent = async (userId, data) => {
   if (guardianPhone !== undefined) profileUpdates.guardianPhone = guardianPhone;
   if (address       !== undefined) profileUpdates.address       = address;
   if (gender        !== undefined) profileUpdates.gender        = gender;
-  if (resultSummary !== undefined) profileUpdates.resultSummary = resultSummary;
 
   const [updatedUser, updatedProfile] = await Promise.all([
     Object.keys(userUpdates).length ? User.findByIdAndUpdate(userId, userUpdates, { returnDocument: 'after' }) : user,

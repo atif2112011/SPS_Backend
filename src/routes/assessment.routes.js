@@ -1,0 +1,16 @@
+import express from 'express';
+import assessmentController from '../controllers/assessment.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorizeRole } from '../middlewares/rbac.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import { handleUpload, uploadFiles } from '../middlewares/upload.middleware.js';
+import { MAX_REPORT_ATTACHMENTS } from '../constants/uploads.js';
+import { createAssessmentSchema, updateAssessmentSchema, listAssessmentsQuerySchema, studentIdParamSchema, idParamSchema, removeAttachmentSchema } from '../validators/assessment.validator.js';
+const router = express.Router(); router.use(authenticate);
+router.get('/student/:studentId', validate(studentIdParamSchema, 'params'), validate(listAssessmentsQuerySchema, 'query'), assessmentController.listStudentAssessments);
+router.get('/:id', validate(idParamSchema, 'params'), assessmentController.getAssessment);
+router.post('/', authorizeRole('admin', 'teacher'), handleUpload(uploadFiles, MAX_REPORT_ATTACHMENTS), validate(createAssessmentSchema), assessmentController.createAssessment);
+router.patch('/:id', authorizeRole('admin', 'teacher'), validate(idParamSchema, 'params'), handleUpload(uploadFiles, MAX_REPORT_ATTACHMENTS), validate(updateAssessmentSchema), assessmentController.updateAssessment);
+router.delete('/:id/attachments', authorizeRole('admin', 'teacher'), validate(idParamSchema, 'params'), validate(removeAttachmentSchema), assessmentController.removeAssessmentAttachment);
+router.delete('/:id', authorizeRole('admin', 'teacher'), validate(idParamSchema, 'params'), assessmentController.deleteAssessment);
+export default router;

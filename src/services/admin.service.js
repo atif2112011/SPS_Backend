@@ -4,7 +4,7 @@ import Notice from '../models/Notice.model.js';
 import Assignment from '../models/Assignment.model.js';
 import Timetable from '../models/Timetable.model.js';
 import ReportCard from '../models/ReportCard.model.js';
-import Result from '../models/Result.model.js';
+import Assessment from '../models/Assessment.model.js';
 import Notification from '../models/Notification.model.js';
 import ActivityLog from '../models/ActivityLog.model.js';
 import { parsePagination, buildPaginationMeta, buildSearchRegex } from '../utils/paginationHelper.js';
@@ -25,7 +25,7 @@ const getOverviewMetrics = async () => {
     upcomingAssignments,
     timetables,
     reportCards,
-    results,
+    assessments,
     unreadNotifications,
     recentActivityCount,
     recentActivity,
@@ -41,7 +41,7 @@ const getOverviewMetrics = async () => {
     Assignment.countDocuments({ isDeleted: false, status: 'active', deadline: { $gte: now } }),
     Timetable.countDocuments({}),
     ReportCard.countDocuments({ isDeleted: false }),
-    Result.countDocuments({ isDeleted: false }),
+    Assessment.countDocuments({ isDeleted: false }),
     Notification.countDocuments({ isRead: false }),
     ActivityLog.countDocuments({ createdAt: { $gte: sevenDaysAgo } }),
     ActivityLog.find({}).sort({ createdAt: -1 }).limit(8),
@@ -56,7 +56,7 @@ const getOverviewMetrics = async () => {
       classes: totalClasses,
       timetables,
       reportCards,
-      results,
+      assessments,
     },
     communication: {
       activeNotices,

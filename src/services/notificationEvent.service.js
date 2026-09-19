@@ -2,7 +2,7 @@ import Notice from '../models/Notice.model.js';
 import Assignment from '../models/Assignment.model.js';
 import Timetable from '../models/Timetable.model.js';
 import ReportCard from '../models/ReportCard.model.js';
-import Result from '../models/Result.model.js';
+import Assessment from '../models/Assessment.model.js';
 import EVENTS from '../constants/events.js';
 import notificationService from './notification.service.js';
 
@@ -91,18 +91,18 @@ const reportCardPayload = async (eventName, payload) => {
   };
 };
 
-const resultPayload = async (eventName, payload) => {
-  const result = await Result.findById(payload.resultId);
-  if (!activeDocument(result)) return null;
-  const updated = eventName === EVENTS.RESULT_UPDATED;
+const assessmentPayload = async (eventName, payload) => {
+  const assessment = await Assessment.findById(payload.assessmentId);
+  if (!activeDocument(assessment)) return null;
+  const updated = eventName === EVENTS.ASSESSMENT_UPDATED;
   return {
-    recipients: [result.studentId],
-    title: updated ? 'Result updated' : 'New result published',
-    body: `${result.examName} result is available`,
-    type: 'result',
-    entityType: 'Result',
-    entityId: result._id,
-    dedupeKeyPrefix: `result:${result._id}:${updated ? `updated:${versionSuffix(payload, result)}` : 'created'}`,
+    recipients: [assessment.studentId],
+    title: updated ? 'Assessment updated' : 'New assessment published',
+    body: `${assessment.title} is available`,
+    type: 'assessment',
+    entityType: 'Assessment',
+    entityId: assessment._id,
+    dedupeKeyPrefix: `assessment:${assessment._id}:${updated ? `updated:${versionSuffix(payload, assessment)}` : 'created'}`,
   };
 };
 
@@ -117,8 +117,8 @@ const builders = new Map([
   [EVENTS.TIMETABLE_UPDATED, timetablePayload],
   [EVENTS.REPORT_CARD_UPLOADED, reportCardPayload],
   [EVENTS.REPORT_CARD_UPDATED, reportCardPayload],
-  [EVENTS.RESULT_CREATED, resultPayload],
-  [EVENTS.RESULT_UPDATED, resultPayload],
+  [EVENTS.ASSESSMENT_CREATED, assessmentPayload],
+  [EVENTS.ASSESSMENT_UPDATED, assessmentPayload],
 ]);
 
 const queueForEvent = async (eventName, payload) => {
