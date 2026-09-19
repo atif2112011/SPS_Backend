@@ -23,6 +23,11 @@ const getClass = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Assigned class fetched', data: classDoc });
 });
 
+const listTeacherDirectory = asyncWrapper(async (_req, res) => {
+  const teachers = await teacherPortalService.listTeacherDirectory();
+  sendSuccess(res, { message: 'Teacher directory fetched', data: teachers });
+});
+
 const listStudents = asyncWrapper(async (req, res) => {
   const { students, pagination } = await teacherPortalService.listStudents(req.user.userId, req.query);
   sendSuccess(res, { message: 'Class students fetched', data: students, pagination });
@@ -135,6 +140,6 @@ const cancelTransfer = asyncWrapper(async (req, res) => {
 
 export default {
   approveTransfer, blockStudent, cancelTransfer, createStudent, getClass, getDashboard, getStudent,
-  getTransferDestinations, getTransferRequest, listStudents, listTransferRequests, rejectTransfer,
+  getTransferDestinations, getTransferRequest, listStudents, listTeacherDirectory, listTransferRequests, rejectTransfer,
   removeStudent, requestTransfer, unblockStudent, updateStudent,
 };

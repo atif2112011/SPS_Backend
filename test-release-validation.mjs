@@ -18,9 +18,13 @@ const expectInvalid = (value, label) => { if (value.success) throw new Error(`${
 expectValid(createTimetableSchema.safeParse({ classId: objectId, schedule: validSchedule }), 'Complete timetable');
 expectInvalid(createTimetableSchema.safeParse({ classId: objectId, schedule: validSchedule.slice(0, 5) }), 'Missing day');
 
-const sevenPeriods = structuredClone(validSchedule);
-sevenPeriods[0].periods.pop();
-expectInvalid(createTimetableSchema.safeParse({ classId: objectId, schedule: sevenPeriods }), 'Seven-period day');
+const ninePeriods = structuredClone(validSchedule);
+ninePeriods[0].periods.push({ startTime: '16:00', endTime: '16:45', subject: 'Subject 9' });
+expectValid(createTimetableSchema.safeParse({ classId: objectId, schedule: ninePeriods }), 'Nine-period day');
+
+const noPeriods = structuredClone(validSchedule);
+noPeriods[0].periods = [];
+expectInvalid(createTimetableSchema.safeParse({ classId: objectId, schedule: noPeriods }), 'Empty weekday');
 
 const backwards = structuredClone(validSchedule);
 backwards[0].periods[0].endTime = '07:45';

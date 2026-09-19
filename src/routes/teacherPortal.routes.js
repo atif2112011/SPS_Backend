@@ -15,6 +15,7 @@ router.use(authenticate, authorizeRole('teacher'));
 
 router.get('/dashboard', teacherPortalController.getDashboard);
 router.get('/class', teacherPortalController.getClass);
+router.get('/directory', teacherPortalController.listTeacherDirectory);
 router.get('/class/students', validate(teacherStudentListQuerySchema, 'query'), teacherPortalController.listStudents);
 router.post('/class/students', validate(teacherCreateStudentSchema), teacherPortalController.createStudent);
 router.get('/class/transfer-destinations', teacherPortalController.getTransferDestinations);

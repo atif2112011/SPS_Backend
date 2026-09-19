@@ -499,6 +499,14 @@ const cancelTransfer = async (teacherId, requestId) => {
   return request;
 };
 
+// Timetable editors need a small, scoped directory instead of duplicating teacher
+// names manually in every period.  Timetables retain the teacher's display name so
+// existing Student App builds continue to render them without a lookup.
+const listTeacherDirectory = async () => User.find({ role: 'teacher', status: 'active' })
+  .select('_id name username')
+  .sort({ name: 1, username: 1 })
+  .lean();
+
 const getDashboard = async (teacherId) => {
   const { classDoc, classId } = await getTeacherContext(teacherId);
   const now = new Date();
@@ -537,12 +545,12 @@ const getDashboard = async (teacherId) => {
 
 export {
   approveTransfer, cancelTransfer, createStudent, getDashboard, getStudent, getTransferDestinations,
-  getTransferRequest, listStudents, listTransferRequests, rejectTransfer, removeStudent,
+  getTransferRequest, listStudents, listTeacherDirectory, listTransferRequests, rejectTransfer, removeStudent,
   requestTransfer, setStudentBlocked, updateStudent,
 };
 
 export default {
   approveTransfer, cancelTransfer, createStudent, getDashboard, getStudent, getTransferDestinations,
-  getTransferRequest, listStudents, listTransferRequests, rejectTransfer, removeStudent,
+  getTransferRequest, listStudents, listTeacherDirectory, listTransferRequests, rejectTransfer, removeStudent,
   requestTransfer, setStudentBlocked, updateStudent,
 };

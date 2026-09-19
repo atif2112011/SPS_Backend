@@ -22,7 +22,8 @@ const periodSchema = z.object({
 
 const dayScheduleSchema = z.object({
   day: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']),
-  periods: z.array(periodSchema).length(8, 'Each day must contain exactly 8 periods'),
+  // Eight periods is the usual starting template, but schools can add more.
+  periods: z.array(periodSchema).min(1, 'Each day must contain at least one period'),
 });
 
 const scheduleSchema = z.array(dayScheduleSchema)
