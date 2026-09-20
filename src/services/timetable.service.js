@@ -46,7 +46,7 @@ const createTimetable = async (data, actor) => {
     metadata: { classId },
   });
 
-  publishEvent(EVENTS.TIMETABLE_CREATED, { timetableId: timetable._id, classId });
+  await publishEvent(EVENTS.TIMETABLE_CREATED, { timetableId: timetable._id, classId });
 
   return timetable;
 };
@@ -99,7 +99,7 @@ const updateTimetable = async (timetableId, data, actor) => {
     metadata: { classId: timetable.classId },
   });
 
-  publishEvent(EVENTS.TIMETABLE_UPDATED, {
+  await publishEvent(EVENTS.TIMETABLE_UPDATED, {
     timetableId,
     classId: timetable.classId,
     eventVersion: updated.updatedAt?.getTime(),

@@ -1,7 +1,12 @@
 node_modules/
 .env
+.env.*
+!.env.example
 .env.local
 .env.production
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
 logs/
 *.log
 dist/

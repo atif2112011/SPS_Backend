@@ -49,7 +49,7 @@ const createAssessment = async (data, actor, files = []) => {
   const attachments = await uploadAttachments(files);
   const record = await Assessment.create({ ...data, attachments, createdBy: actor.userId });
   logActivity({ actorId: actor.userId, actorName: actor.userId, actorRole: actor.role, actionType: 'CREATE_ASSESSMENT', entityType: 'Assessment', entityId: record._id, metadata: { studentId: data.studentId, classId: data.classId, category: data.category, title: data.title } });
-  publishEvent(EVENTS.ASSESSMENT_CREATED, { assessmentId: record._id }); return record;
+  await publishEvent(EVENTS.ASSESSMENT_CREATED, { assessmentId: record._id }); return record;
 };
 const listStudentAssessments = async (studentId, query, actor) => {
   if (actor.role === 'student' && actor.userId !== studentId) throw appError('Access denied', 403, ERROR_CODES.SCOPE_VIOLATION);
@@ -71,7 +71,7 @@ const updateAssessment = async (id, data, actor, files = []) => {
   if ((record.attachments?.length || 0) + files.length > MAX_REPORT_ATTACHMENTS) throw appError(`An assessment can have a maximum of ${MAX_REPORT_ATTACHMENTS} attachments`, 400, ERROR_CODES.VALIDATION_ERROR);
   const attachments = await uploadAttachments(files); const updates = { ...data }; if (attachments.length) updates.$push = { attachments: { $each: attachments } };
   const updated = await Assessment.findByIdAndUpdate(id, updates, { returnDocument: 'after', runValidators: true });
-  logActivity({ actorId: actor.userId, actorName: actor.userId, actorRole: actor.role, actionType: 'UPDATE_ASSESSMENT', entityType: 'Assessment', entityId: id, metadata: { fields: Object.keys(data) } }); publishEvent(EVENTS.ASSESSMENT_UPDATED, { assessmentId: id, eventVersion: updated.updatedAt?.getTime() }); return updated;
+  logActivity({ actorId: actor.userId, actorName: actor.userId, actorRole: actor.role, actionType: 'UPDATE_ASSESSMENT', entityType: 'Assessment', entityId: id, metadata: { fields: Object.keys(data) } }); await publishEvent(EVENTS.ASSESSMENT_UPDATED, { assessmentId: id, eventVersion: updated.updatedAt?.getTime() }); return updated;
 };
 const removeAssessmentAttachment = async (id, path, actor) => { const record = await Assessment.findOne({ _id: id, isDeleted: false }); if (!record) throw appError('Assessment not found', 404, ERROR_CODES.NOT_FOUND); await canManage(record, actor); const attachment = record.attachments?.find((item) => item.path === path); if (!attachment) throw appError('Attachment not found', 404, ERROR_CODES.NOT_FOUND); await deleteFile(path); return Assessment.findByIdAndUpdate(id, { $pull: { attachments: { path } } }, { returnDocument: 'after' }); };
 const deleteAssessment = async (id, actor) => { const record = await Assessment.findOne({ _id: id, isDeleted: false }); if (!record) throw appError('Assessment not found', 404, ERROR_CODES.NOT_FOUND); await canManage(record, actor); await Assessment.findByIdAndUpdate(id, { isDeleted: true }); logActivity({ actorId: actor.userId, actorName: actor.userId, actorRole: actor.role, actionType: 'DELETE_ASSESSMENT', entityType: 'Assessment', entityId: id }); };

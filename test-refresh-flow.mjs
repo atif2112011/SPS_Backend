@@ -4,18 +4,33 @@ dotenv.config();
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import authService from './src/services/auth.service.js';
-
-const username = process.env.TEST_STUDENT_USERNAME;
-const password = process.env.TEST_STUDENT_PASSWORD;
-if (!username || !password) throw new Error('Set TEST_STUDENT_USERNAME and TEST_STUDENT_PASSWORD to run this test');
+import { hashPassword } from './src/utils/hashUtils.js';
 
 await mongoose.connect(process.env.MONGODB_URI);
-const [{ default: app }, { default: User }] = await Promise.all([
+const [{ default: app }, { default: User }, { default: RefreshToken }] = await Promise.all([
   import('./src/app.js'),
   import('./src/models/User.model.js'),
+  import('./src/models/RefreshToken.model.js'),
 ]);
 
-const student = await User.findOne({ username, role: 'student', status: 'active' });
+let username = process.env.TEST_STUDENT_USERNAME;
+let password = process.env.TEST_STUDENT_PASSWORD;
+let temporaryStudent;
+
+if (!username || !password) {
+  const suffix = `${Date.now()}-${new mongoose.Types.ObjectId()}`;
+  username = `refresh-flow-${suffix}`;
+  password = `Refresh${Date.now()}9`;
+  temporaryStudent = await User.create({
+    role: 'student',
+    username,
+    passwordHash: await hashPassword(password),
+    status: 'active',
+    name: 'Temporary Refresh Flow Student',
+  });
+}
+
+const student = temporaryStudent || await User.findOne({ username, role: 'student', status: 'active' });
 if (!student) throw new Error('Configured test student was not found');
 
 const checks = [];
@@ -82,6 +97,10 @@ try {
 } finally {
   await Promise.all(issuedRefreshTokens.map((refreshToken) => authService.logout(refreshToken)));
   await new Promise((resolve) => server.close(resolve));
+  if (temporaryStudent?._id) {
+    await RefreshToken.deleteMany({ userId: temporaryStudent._id });
+    await User.deleteOne({ _id: temporaryStudent._id });
+  }
   await mongoose.disconnect();
 }
 

@@ -1,10 +1,16 @@
-import cron from 'node-cron';
 import Assignment from '../models/Assignment.model.js';
-import logger from '../config/logger.js';
-import { publishEvent } from '../events/eventBus.js';
 import EVENTS from '../constants/events.js';
+import notificationEventService from '../services/notificationEvent.service.js';
 
-let jobsStarted = false;
+const queueReminderEvents = async (eventName, assignments) => {
+  const results = await Promise.all(assignments.map((assignment) => (
+    notificationEventService.queueForEvent(eventName, { assignmentId: assignment._id })
+  )));
+  return {
+    matched: assignments.length,
+    queued: results.filter(Boolean).length,
+  };
+};
 
 const runDailyAssignmentReminders = async () => {
   const now = new Date();
@@ -15,11 +21,9 @@ const runDailyAssignmentReminders = async () => {
     isDeleted: false,
     status: 'active',
     deadline: { $gte: start, $lte: end },
-  });
+  }).select('_id').lean();
 
-  for (const assignment of assignments) {
-    publishEvent(EVENTS.ASSIGNMENT_REMINDER_1D, { assignmentId: assignment._id });
-  }
+  return queueReminderEvents(EVENTS.ASSIGNMENT_REMINDER_1D, assignments);
 };
 
 const runHourlyAssignmentDueReminders = async () => {
@@ -30,31 +34,10 @@ const runHourlyAssignmentDueReminders = async () => {
     isDeleted: false,
     status: 'active',
     deadline: { $gte: now, $lte: end },
-  });
+  }).select('_id').lean();
 
-  for (const assignment of assignments) {
-    publishEvent(EVENTS.ASSIGNMENT_DUE, { assignmentId: assignment._id });
-  }
+  return queueReminderEvents(EVENTS.ASSIGNMENT_DUE, assignments);
 };
 
-const startAssignmentReminderJobs = () => {
-  if (jobsStarted) return;
-  jobsStarted = true;
-
-  cron.schedule('0 8 * * *', () => {
-    runDailyAssignmentReminders().catch((err) => {
-      logger.error('Daily assignment reminder job failed', { error: err.message });
-    });
-  });
-
-  cron.schedule('0 * * * *', () => {
-    runHourlyAssignmentDueReminders().catch((err) => {
-      logger.error('Hourly assignment reminder job failed', { error: err.message });
-    });
-  });
-
-  logger.info('Assignment reminder jobs scheduled');
-};
-
-export { startAssignmentReminderJobs, runDailyAssignmentReminders, runHourlyAssignmentDueReminders };
-export default { startAssignmentReminderJobs, runDailyAssignmentReminders, runHourlyAssignmentDueReminders };
+export { runDailyAssignmentReminders, runHourlyAssignmentDueReminders };
+export default { runDailyAssignmentReminders, runHourlyAssignmentDueReminders };

@@ -6,8 +6,6 @@ import morgan from 'morgan';
 import requestContext from './middlewares/requestContext.middleware.js';
 import errorHandler from './middlewares/errorHandler.middleware.js';
 import routes from './routes/index.js';
-import { bootstrap } from './bootstrap.js';
-import { isVercelRuntime } from './utils/env.js';
 
 const app = express();
 
@@ -19,24 +17,12 @@ app.use(cors({
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8081', 'http://localhost:8082'],
   credentials: true,
 }));
-console.log('CORS allowed origins:', (process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN))
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
 app.use(morgan('dev'));
-
-if (isVercelRuntime()) {
-  app.use(async (req, res, next) => {
-    try {
-      await bootstrap({ startJobs: false });
-      next();
-    } catch (err) {
-      next(err);
-    }
-  });
-}
 
 app.use(requestContext);
 

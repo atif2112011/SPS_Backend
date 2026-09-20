@@ -96,7 +96,7 @@ const createResult = async (data, actor) => {
     metadata: { studentId, classId, examName, academicYear },
   });
 
-  publishEvent(EVENTS.RESULT_CREATED, { resultId: result._id });
+  await publishEvent(EVENTS.RESULT_CREATED, { resultId: result._id });
 
   return result;
 };
@@ -174,7 +174,7 @@ const updateResult = async (resultId, data, actor) => {
     metadata: { fields: Object.keys(data) },
   });
 
-  publishEvent(EVENTS.RESULT_UPDATED, {
+  await publishEvent(EVENTS.RESULT_UPDATED, {
     resultId,
     eventVersion: updated.updatedAt?.getTime(),
   });

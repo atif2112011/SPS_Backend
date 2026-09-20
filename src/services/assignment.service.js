@@ -88,7 +88,7 @@ const createAssignment = async (data, actor, files) => {
     metadata: { title, deadline },
   });
 
-  publishEvent(EVENTS.ASSIGNMENT_CREATED, { assignmentId: assignment._id });
+  await publishEvent(EVENTS.ASSIGNMENT_CREATED, { assignmentId: assignment._id });
 
   return assignment;
 };
@@ -201,7 +201,7 @@ const updateAssignment = async (assignmentId, data, actor, files) => {
     metadata: { fields: Object.keys(data) },
   });
 
-  publishEvent(EVENTS.ASSIGNMENT_UPDATED, {
+  await publishEvent(EVENTS.ASSIGNMENT_UPDATED, {
     assignmentId: updated._id,
     eventVersion: updated.updatedAt?.getTime(),
   });

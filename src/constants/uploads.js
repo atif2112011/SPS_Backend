@@ -1,5 +1,5 @@
-// Vercel Functions reject request bodies above 4.5 MB before Express runs.
-// Keep multipart file bytes at or below 4 MB to leave room for boundaries and fields.
+// Keep multipart file bytes at or below 4 MB to leave room for boundaries and
+// form fields and to match the limits enforced by the Android apps.
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const MAX_UPLOAD_BODY_BYTES = 4 * 1024 * 1024;
 const MAX_CONTENT_ATTACHMENTS = 5;

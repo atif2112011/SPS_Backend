@@ -108,7 +108,7 @@ const createReportCard = async (data, actor, files) => {
     metadata: { studentId, classId, term, academicYear },
   });
 
-  publishEvent(EVENTS.REPORT_CARD_UPLOADED, { reportCardId: reportCard._id });
+  await publishEvent(EVENTS.REPORT_CARD_UPLOADED, { reportCardId: reportCard._id });
 
   return reportCard;
 };
@@ -198,7 +198,7 @@ const updateReportCard = async (reportCardId, data, actor, files) => {
     metadata: { fields: Object.keys(data) },
   });
 
-  publishEvent(EVENTS.REPORT_CARD_UPDATED, {
+  await publishEvent(EVENTS.REPORT_CARD_UPDATED, {
     reportCardId: updated._id,
     eventVersion: updated.updatedAt?.getTime(),
   });

@@ -5,7 +5,7 @@ const notificationCampaignSchema = new mongoose.Schema({
   body: { type: String, required: true, trim: true, maxlength: 500 },
   sourceType: {
     type: String,
-    enum: ['custom', 'notice', 'assignment', 'timetable', 'reportCard', 'result', 'reminder'],
+    enum: ['custom', 'notice', 'assignment', 'timetable', 'reportCard', 'result', 'assessment', 'reminder'],
     default: 'custom',
   },
   entityType: { type: String, trim: true },

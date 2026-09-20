@@ -5,6 +5,17 @@ import { handleUpload, uploadContentAttachments, uploadFiles } from './src/middl
 const app = express();
 app.post('/upload', handleUpload(uploadContentAttachments), (req, res) => res.json({ count: req.files.length }));
 app.post('/report-upload', handleUpload(uploadFiles, MAX_REPORT_ATTACHMENTS), (req, res) => res.json({ count: req.files.length }));
+app.post('/firebase-upload', (req, res, next) => {
+  const chunks = [];
+  req.on('data', (chunk) => chunks.push(chunk));
+  req.on('end', () => {
+    req.rawBody = Buffer.concat(chunks);
+    next();
+  });
+}, handleUpload(uploadContentAttachments), (req, res) => res.json({
+  count: req.files.length,
+  title: req.body.title,
+}));
 app.use((error, req, res, next) => res.status(error.statusCode || 500).json({ message: error.message }));
 
 const server = await new Promise((resolve) => {
@@ -44,7 +55,16 @@ try {
   const tooManyReportFiles = await upload(Array.from({ length: 4 }, (_, index) => ({ name: `report-${index}.pdf`, type: 'application/pdf', bytes: 'test' })), '/report-upload', 'files');
   if (tooManyReportFiles.status !== 400 || !tooManyReportFiles.body.message.includes('maximum of 3')) throw new Error('Report attachment count limit was not enforced');
 
-  console.log('Upload limits passed: type, 4 MB request-safe size, combined payload, 5 content attachments, and 3 report attachments.');
+  const firebaseForm = new FormData();
+  firebaseForm.append('title', 'Firebase raw body upload');
+  firebaseForm.append('images', new Blob(['firebase'], { type: 'application/pdf' }), 'firebase.pdf');
+  const firebaseResponse = await fetch(`http://127.0.0.1:${port}/firebase-upload`, { method: 'POST', body: firebaseForm });
+  const firebaseBody = await firebaseResponse.json();
+  if (firebaseResponse.status !== 200 || firebaseBody.count !== 1 || firebaseBody.title !== 'Firebase raw body upload') {
+    throw new Error('Firebase rawBody multipart upload was rejected');
+  }
+
+  console.log('Upload limits passed: type, 4 MB request-safe size, combined payload, Firebase rawBody, 5 content attachments, and 3 report attachments.');
 } finally {
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 }

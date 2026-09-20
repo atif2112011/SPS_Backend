@@ -7,7 +7,7 @@ const notificationSchema = new mongoose.Schema({
   body: { type: String, required: true, trim: true },
   type: {
     type: String,
-    enum: ['notice', 'assignment', 'timetable', 'reportCard', 'result', 'reminder'],
+    enum: ['notice', 'assignment', 'timetable', 'reportCard', 'result', 'assessment', 'reminder'],
     required: true,
   },
   entityType: { type: String, required: true, trim: true },

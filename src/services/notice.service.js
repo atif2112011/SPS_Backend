@@ -76,7 +76,7 @@ const createNotice = async (data, actor, files) => {
     metadata: { title, audienceType },
   });
 
-  publishEvent(EVENTS.NOTICE_CREATED, { noticeId: notice._id });
+  await publishEvent(EVENTS.NOTICE_CREATED, { noticeId: notice._id });
 
   return notice;
 };
@@ -242,7 +242,7 @@ const updateNotice = async (noticeId, data, actor, files) => {
     metadata: { fields: Object.keys(data) },
   });
 
-  publishEvent(EVENTS.NOTICE_UPDATED, {
+  await publishEvent(EVENTS.NOTICE_UPDATED, {
     noticeId: updated._id,
     eventVersion: updated.updatedAt?.getTime(),
   });

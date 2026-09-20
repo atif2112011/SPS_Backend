@@ -9,6 +9,8 @@ const EVENTS = {
   REPORT_CARD_UPDATED: 'reportCard:updated',
   ASSESSMENT_CREATED: 'assessment:created',
   ASSESSMENT_UPDATED: 'assessment:updated',
+  RESULT_CREATED: 'result:created',
+  RESULT_UPDATED: 'result:updated',
   ASSIGNMENT_REMINDER_1D: 'assignment:reminder1d',
   ASSIGNMENT_DUE: 'assignment:due',
 };

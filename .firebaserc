@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "sps-portal-12e39",
+    "production": "sps-portal-12e39"
+  }
+}

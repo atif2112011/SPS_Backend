@@ -1,7 +1,9 @@
 import NotificationCampaign from '../models/NotificationCampaign.model.js';
 import NotificationDelivery from '../models/NotificationDelivery.model.js';
+import NotificationEvent from '../models/NotificationEvent.model.js';
 import DeviceToken from '../models/DeviceToken.model.js';
 import { sendPushBatch } from './fcm.service.js';
+import notificationEventService from './notificationEvent.service.js';
 import logger from '../config/logger.js';
 
 const MAX_ATTEMPTS = 3;
@@ -16,6 +18,78 @@ const TRANSIENT_CODES = new Set([
   'messaging/quota-exceeded',
   'messaging/unknown-error',
 ]);
+
+const claimNotificationEvents = async (limit, eventIds) => {
+  const claimed = [];
+  for (let index = 0; index < limit; index += 1) {
+    const now = new Date();
+    const event = await NotificationEvent.findOneAndUpdate(
+      {
+        ...(eventIds?.length ? { _id: { $in: eventIds } } : {}),
+        attemptCount: { $lt: MAX_ATTEMPTS },
+        $or: [
+          { status: { $in: ['pending', 'retry_scheduled'] }, nextAttemptAt: { $lte: now } },
+          { status: 'processing', lockedUntil: { $lte: now } },
+        ],
+      },
+      {
+        $set: {
+          status: 'processing',
+          lockedAt: now,
+          lockedUntil: new Date(now.getTime() + 2 * 60_000),
+        },
+        $inc: { attemptCount: 1 },
+      },
+      { returnDocument: 'after', sort: { nextAttemptAt: 1 } },
+    ).lean();
+    if (!event) break;
+    claimed.push(event);
+  }
+  return claimed;
+};
+
+const processNotificationEvents = async (limit, { eventIds } = {}) => {
+  const events = await claimNotificationEvents(limit, eventIds);
+  let completed = 0;
+  let failed = 0;
+
+  for (const event of events) {
+    try {
+      await notificationEventService.queueForEvent(event.eventName, event.payload);
+      await NotificationEvent.findByIdAndUpdate(event._id, {
+        $set: {
+          status: 'completed',
+          completedAt: new Date(),
+          lockedAt: null,
+          lockedUntil: null,
+          lastError: null,
+        },
+      });
+      completed += 1;
+    } catch (error) {
+      const canRetry = event.attemptCount < MAX_ATTEMPTS;
+      const retryDelay = RETRY_DELAYS_MS[Math.max(0, event.attemptCount - 1)] || RETRY_DELAYS_MS.at(-1);
+      await NotificationEvent.findByIdAndUpdate(event._id, {
+        $set: {
+          status: canRetry ? 'retry_scheduled' : 'failed',
+          nextAttemptAt: canRetry ? new Date(Date.now() + retryDelay) : event.nextAttemptAt,
+          lockedAt: null,
+          lockedUntil: null,
+          lastError: error.message,
+        },
+      });
+      failed += 1;
+      logger.warn('Notification event processing failed', {
+        eventId: event._id,
+        eventName: event.eventName,
+        attemptCount: event.attemptCount,
+        error: error.message,
+      });
+    }
+  }
+
+  return { claimed: events.length, completed, failed };
+};
 
 const claimDeliveries = async (limit, campaignIds) => {
   const claimed = [];
@@ -123,8 +197,13 @@ const recordResult = async (delivery, result) => {
 const runNotificationWorker = async ({ sendBatch = sendPushBatch, campaignIds: onlyCampaignIds } = {}) => {
   const configuredBatchSize = Number.parseInt(process.env.NOTIFICATION_BATCH_SIZE || '100', 10);
   const batchSize = Math.min(500, Math.max(1, configuredBatchSize || 100));
+  const events = onlyCampaignIds
+    ? { claimed: 0, completed: 0, failed: 0 }
+    : await processNotificationEvents(batchSize);
   const deliveries = await claimDeliveries(batchSize, onlyCampaignIds);
-  if (deliveries.length === 0) return { claimed: 0, delivered: 0, failed: 0 };
+  if (deliveries.length === 0) {
+    return { claimed: 0, delivered: 0, failed: 0, events };
+  }
 
   const campaignIds = [...new Set(deliveries.map((delivery) => String(delivery.campaignId)))];
   const campaigns = await NotificationCampaign.find({ _id: { $in: campaignIds }, status: { $ne: 'cancelled' } }).lean();
@@ -171,8 +250,8 @@ const runNotificationWorker = async ({ sendBatch = sendPushBatch, campaignIds: o
     await refreshCampaignTotals(campaign._id);
   }
 
-  return { claimed: deliveries.length, delivered, failed };
+  return { claimed: deliveries.length, delivered, failed, events };
 };
 
-export { MAX_ATTEMPTS, runNotificationWorker, refreshCampaignTotals };
-export default { runNotificationWorker, refreshCampaignTotals };
+export { MAX_ATTEMPTS, runNotificationWorker, refreshCampaignTotals, processNotificationEvents };
+export default { runNotificationWorker, refreshCampaignTotals, processNotificationEvents };

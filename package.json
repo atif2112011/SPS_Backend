@@ -3,15 +3,25 @@
   "version": "1.0.0",
   "description": "School Communication System — Backend API",
   "type": "module",
-  "main": "server.js",
+  "main": "firebase.js",
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "firebase:emulators": "firebase emulators:start --only functions",
+    "firebase:deploy": "firebase deploy --only functions",
+    "firebase:deploy:api": "firebase deploy --only functions:spsApi",
+    "firebase:deploy:schedules": "firebase deploy --only functions:notificationWorker,functions:hourlyAssignmentReminders,functions:dailyAssignmentReminders",
+    "firebase:logs": "firebase functions:log",
+    "test:firebase": "node test-firebase-functions.mjs",
     "test:phase8": "node test-phase8.mjs",
     "test:dashboard": "node test-dashboard.mjs",
     "test:refresh": "node test-refresh-flow.mjs",
     "test:notifications": "node test-notification-system.mjs",
     "test:notification-events": "node test-notification-events.mjs",
+    "test:notification-outbox": "node test-notification-outbox.mjs",
     "test:teacher-app": "node test-teacher-app.mjs",
     "test:uploads": "node test-upload-limits.mjs",
     "test:release-validation": "node test-release-validation.mjs",
@@ -27,17 +37,18 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "firebase-admin": "^13.10.0",
+    "firebase-functions": "^7.4.0",
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.3",
     "morgan": "^1.11.0",
     "multer": "^2.1.1",
-    "node-cron": "^4.2.1",
     "uuid": "^14.0.0",
     "winston": "^3.19.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "firebase-tools": "^15.30.2",
     "nodemon": "^3.1.14"
   }
 }

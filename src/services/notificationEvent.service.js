@@ -3,6 +3,7 @@ import Assignment from '../models/Assignment.model.js';
 import Timetable from '../models/Timetable.model.js';
 import ReportCard from '../models/ReportCard.model.js';
 import Assessment from '../models/Assessment.model.js';
+import Result from '../models/Result.model.js';
 import EVENTS from '../constants/events.js';
 import notificationService from './notification.service.js';
 
@@ -106,6 +107,21 @@ const assessmentPayload = async (eventName, payload) => {
   };
 };
 
+const resultPayload = async (eventName, payload) => {
+  const result = await Result.findById(payload.resultId);
+  if (!activeDocument(result)) return null;
+  const updated = eventName === EVENTS.RESULT_UPDATED;
+  return {
+    recipients: [result.studentId],
+    title: updated ? 'Result updated' : 'New result published',
+    body: `${result.examName} result is available`,
+    type: 'result',
+    entityType: 'Result',
+    entityId: result._id,
+    dedupeKeyPrefix: `result:${result._id}:${updated ? `updated:${versionSuffix(payload, result)}` : 'created'}`,
+  };
+};
+
 const builders = new Map([
   [EVENTS.NOTICE_CREATED, noticePayload],
   [EVENTS.NOTICE_UPDATED, noticePayload],
@@ -119,6 +135,8 @@ const builders = new Map([
   [EVENTS.REPORT_CARD_UPDATED, reportCardPayload],
   [EVENTS.ASSESSMENT_CREATED, assessmentPayload],
   [EVENTS.ASSESSMENT_UPDATED, assessmentPayload],
+  [EVENTS.RESULT_CREATED, resultPayload],
+  [EVENTS.RESULT_UPDATED, resultPayload],
 ]);
 
 const queueForEvent = async (eventName, payload) => {

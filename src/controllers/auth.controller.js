@@ -2,14 +2,21 @@ import authService from '../services/auth.service.js';
 import { sendSuccess, sendError } from '../utils/responseHelper.js';
 import asyncWrapper from '../utils/asyncWrapper.js';
 import ERROR_CODES from '../constants/errorCodes.js';
+import { isFirebaseRuntime } from '../utils/env.js';
 
-const getRefreshCookieOptions = () => ({
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.COOKIE_SAME_SITE || (process.env.NODE_ENV === 'production' ? 'none' : 'lax'),
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: '/api/v1/auth',
-});
+const getRefreshCookieOptions = () => {
+  const hostedRuntime = isFirebaseRuntime() || process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: hostedRuntime,
+    sameSite: isFirebaseRuntime()
+      ? 'none'
+      : process.env.COOKIE_SAME_SITE || (hostedRuntime ? 'none' : 'lax'),
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    // The direct Functions URL adds /spsApi before the Express route path.
+    path: process.env.COOKIE_PATH || '/',
+  };
+};
 
 const clearRefreshCookie = (res) => {
   const { maxAge, ...options } = getRefreshCookieOptions();

@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import logger from './logger.js';
-import { isVercelRuntime } from '../utils/env.js';
 
 const connectDB = async () => {
   try {
@@ -12,15 +11,23 @@ const connectDB = async () => {
       return mongoose.connection;
     }
 
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MongoDB configuration missing: MONGODB_URI');
+    }
+
+    const configuredPoolSize = Number.parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10', 10);
+    const maxPoolSize = Number.isFinite(configuredPoolSize) && configuredPoolSize > 0
+      ? configuredPoolSize
+      : 10;
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      maxPoolSize,
+      serverSelectionTimeoutMS: 10_000,
+    });
     logger.info(`MongoDB connected: ${conn.connection.host}`);
     return conn.connection;
   } catch (err) {
     logger.error('MongoDB connection failed', { error: err.message });
-    if (isVercelRuntime()) {
-      throw err;
-    }
-    process.exit(1);
+    throw err;
   }
 };
 

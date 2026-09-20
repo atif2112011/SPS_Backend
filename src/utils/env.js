@@ -1,6 +1,13 @@
-const isTruthyEnv = (value) => ['1', 'true', 'yes'].includes(String(value || '').toLowerCase());
+const isTruthyEnv = (value) => ['1', 'true', 'yes', 'on'].includes(String(value || '').trim().toLowerCase());
 
-const isVercelRuntime = () => isTruthyEnv(process.env.VERCEL);
+const isFirebaseRuntime = () => Boolean(
+  !isTruthyEnv(process.env.FUNCTIONS_EMULATOR)
+  && (
+    process.env.K_SERVICE
+    || process.env.FUNCTION_TARGET
+    || process.env.FUNCTION_NAME
+  )
+);
 
-export { isTruthyEnv, isVercelRuntime };
-export default { isTruthyEnv, isVercelRuntime };
+export { isTruthyEnv, isFirebaseRuntime };
+export default { isTruthyEnv, isFirebaseRuntime };

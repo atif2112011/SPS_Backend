@@ -1,0 +1,29 @@
+{
+  "functions": {
+    "source": ".",
+    "codebase": "default",
+    "runtime": "nodejs22",
+    "ignore": [
+      ".git",
+      ".firebase",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "node_modules",
+      "docs",
+      "api",
+      "test-*.mjs",
+      "test-*.ps1",
+      "scripts",
+      "*.local"
+    ]
+  },
+  "emulators": {
+    "functions": {
+      "port": 5001
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    }
+  }
+}

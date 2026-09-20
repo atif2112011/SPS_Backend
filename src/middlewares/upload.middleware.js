@@ -1,4 +1,5 @@
 import multer from 'multer';
+import { PassThrough } from 'node:stream';
 import ERROR_CODES from '../constants/errorCodes.js';
 import { CONTENT_ATTACHMENT_MIME_TYPES, MAX_CONTENT_ATTACHMENTS, MAX_FILE_SIZE, MAX_REPORT_ATTACHMENTS, MAX_UPLOAD_BODY_BYTES } from '../constants/uploads.js';
 
@@ -39,8 +40,35 @@ const uploadContentAttachments = multer({
   limits: { ...limits, files: MAX_CONTENT_ATTACHMENTS },
 }).array('images', MAX_CONTENT_ATTACHMENTS);
 
+const runMulter = (multerMiddleware, req, res, callback) => {
+  const contentType = String(req.headers?.['content-type'] || '');
+  const hasFirebaseRawBody = Buffer.isBuffer(req.rawBody)
+    && contentType.toLowerCase().startsWith('multipart/form-data');
+
+  if (!hasFirebaseRawBody) {
+    multerMiddleware(req, res, callback);
+    return;
+  }
+
+  // Cloud Functions materializes the request stream as rawBody before the
+  // Express handler runs. Replay those bytes through a stream for Multer.
+  const uploadRequest = new PassThrough();
+  uploadRequest.headers = req.headers;
+  uploadRequest.method = req.method;
+  uploadRequest.url = req.url;
+  uploadRequest.originalUrl = req.originalUrl;
+
+  multerMiddleware(uploadRequest, res, (err) => {
+    req.body = uploadRequest.body;
+    req.file = uploadRequest.file;
+    req.files = uploadRequest.files;
+    callback(err);
+  });
+  uploadRequest.end(req.rawBody);
+};
+
 const handleUpload = (multerMiddleware, maxFiles = MAX_CONTENT_ATTACHMENTS) => (req, res, next) => {
-  multerMiddleware(req, res, (err) => {
+  runMulter(multerMiddleware, req, res, (err) => {
     if (!err) {
       const totalBytes = (req.files || []).reduce((total, file) => total + (file.size || file.buffer?.length || 0), 0);
       if (totalBytes > MAX_UPLOAD_BODY_BYTES) {
