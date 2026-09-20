@@ -16,9 +16,10 @@ app.use(helmet());
 app.use(cors({
   origin: (process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN)
     ? (process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN).split(',').map((origin) => origin.trim()).filter(Boolean)
-    : ['http://localhost:3000', 'http://localhost:3001'],
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8081', 'http://localhost:8082'],
   credentials: true,
 }));
+console.log('CORS allowed origins:', (process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN))
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));

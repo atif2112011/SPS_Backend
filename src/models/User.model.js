@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema(
     profileImage: { type: String },
     lastLoginAt: { type: Date },
     refreshTokenVersion: { type: Number, default: 0 },
+    firstPasswordChange: { type: Boolean, default: true },
     metrics: { type: metricsSchema, default: () => ({}) },
   },
   { timestamps: true }

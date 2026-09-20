@@ -37,7 +37,7 @@ const login = async (username, password, deviceInfo) => {
 
   await User.findByIdAndUpdate(user._id, { lastLoginAt: new Date() });
 
-  const accessToken = signAccessToken({ userId: user._id, role: user.role });
+  const accessToken = signAccessToken({ userId: user._id, role: user.role, tokenVersion: user.refreshTokenVersion });
   const refreshToken = signRefreshToken({ userId: user._id, tokenVersion: user.refreshTokenVersion });
 
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -58,9 +58,11 @@ const login = async (username, password, deviceInfo) => {
       username: user.username,
       name: user.name,
       role: user.role,
+      status: user.status,
       email: user.email,
       profileImage: user.profileImage,
       metrics: user.metrics,
+      firstPasswordChange: user.firstPasswordChange !== false,
     },
   };
 };
@@ -86,14 +88,14 @@ const refresh = async (oldRefreshToken) => {
   }
 
   const user = await User.findById(decoded.userId).select('role status refreshTokenVersion');
-  if (!user || user.status !== 'active') {
+  if (!user || user.status !== 'active' || decoded.tokenVersion !== user.refreshTokenVersion) {
     const err = new Error('User not found or inactive');
     err.statusCode = 401;
     err.errorCode = 'TOKEN_INVALID';
     throw err;
   }
 
-  const newAccessToken = signAccessToken({ userId: user._id, role: user.role });
+  const newAccessToken = signAccessToken({ userId: user._id, role: user.role, tokenVersion: user.refreshTokenVersion });
   const newRefreshToken = signRefreshToken({ userId: user._id, tokenVersion: user.refreshTokenVersion });
 
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -121,7 +123,9 @@ const getMe = async (userId) => {
     err.errorCode = 'NOT_FOUND';
     throw err;
   }
-  return user;
+  const userData = user.toObject();
+  if (userData.firstPasswordChange === undefined) userData.firstPasswordChange = true;
+  return userData;
 };
 
 const changePassword = async (userId, currentPassword, newPassword) => {
@@ -145,12 +149,14 @@ const changePassword = async (userId, currentPassword, newPassword) => {
 
   await User.findByIdAndUpdate(userId, {
     passwordHash: newHash,
+    firstPasswordChange: true,
     $inc: { refreshTokenVersion: 1 },
   });
 
   await RefreshToken.updateMany({ userId }, { revokedAt: new Date() });
 
   logger.info('Password changed, all sessions revoked', { userId });
+  return { firstPasswordChange: true, requiresLogin: true };
 };
 
 export { login, refresh, logout, getMe, changePassword };

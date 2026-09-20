@@ -23,7 +23,7 @@ const authenticate = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = verifyAccessToken(token);
 
-    const user = await User.findById(decoded.userId).select('role status');
+    const user = await User.findById(decoded.userId).select('role status refreshTokenVersion');
     if (!user || user.status === 'deleted') {
       return res.status(401).json({
         success: false,
@@ -37,6 +37,14 @@ const authenticate = async (req, res, next) => {
         success: false,
         message: 'Your account has been blocked',
         errorCode: ERROR_CODES.ACCOUNT_BLOCKED,
+        traceId: req.traceId,
+      });
+    }
+    if (decoded.tokenVersion !== user.refreshTokenVersion) {
+      return res.status(401).json({
+        success: false,
+        message: 'Your session is no longer valid. Sign in again.',
+        errorCode: ERROR_CODES.TOKEN_INVALID,
         traceId: req.traceId,
       });
     }

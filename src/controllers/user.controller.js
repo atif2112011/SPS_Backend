@@ -9,14 +9,15 @@ import asyncWrapper from '../utils/asyncWrapper.js';
  * Access: admin only
  */
 const createStudent = asyncWrapper(async (req, res) => {
-  const { user, profile } = await userService.createStudent(req.body);
+  const { user, profile, credentials } = await userService.createStudent(req.body);
+  res.set('Cache-Control', 'no-store');
   await logActivity({
     actorId: req.user.userId, actorName: req.user.name || 'Admin', actorRole: req.user.role,
     targetId: user._id, targetName: user.name, targetRole: 'student',
     actionType: 'CREATE_STUDENT', entityType: 'User', entityId: user._id,
     ipAddress: req.ip, userAgent: req.headers['user-agent'],
   });
-  sendSuccess(res, { message: 'Student created successfully', data: { user, profile }, statusCode: 201 });
+  sendSuccess(res, { message: 'Student created successfully', data: { user, profile, credentials }, statusCode: 201 });
 });
 
 /**
@@ -129,5 +130,17 @@ const unblockUser = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'User unblocked successfully' });
 });
 
-export { createStudent, createTeacher, listStudents, listTeachers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser };
-export default { createStudent, createTeacher, listStudents, listTeachers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser };
+const resetStudentPassword = asyncWrapper(async (req, res) => {
+  const credentials = await userService.resetStudentPassword(req.params.id);
+  res.set('Cache-Control', 'no-store');
+  await logActivity({
+    actorId: req.user.userId, actorName: req.user.name || req.user.userId, actorRole: req.user.role,
+    targetId: credentials.studentId, targetName: credentials.studentName, targetRole: 'student',
+    actionType: 'RESET_STUDENT_PASSWORD', entityType: 'User', entityId: credentials.studentId,
+    ipAddress: req.ip, userAgent: req.headers['user-agent'],
+  });
+  sendSuccess(res, { message: 'Student password reset successfully', data: credentials });
+});
+
+export { createStudent, createTeacher, listStudents, listTeachers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser, resetStudentPassword };
+export default { createStudent, createTeacher, listStudents, listTeachers, getUserById, updateStudent, updateTeacher, deleteUser, blockUser, unblockUser, resetStudentPassword };

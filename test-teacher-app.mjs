@@ -171,6 +171,8 @@ try {
   });
   const onboardedId = onboarded.data.user._id;
   const onboardCredentials = onboarded.data.credentials;
+  check(onboarded.data.user.firstPasswordChange === false,
+    'New student should require an initial password change');
   check(onboardCredentials?.username === onboarded.data.user.username && /^\d{5}$/.test(onboardCredentials.password.slice(-5)),
     'Student creation did not return generated credentials');
   await login(onboardCredentials.username, 200, onboardCredentials.password);

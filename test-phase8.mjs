@@ -22,8 +22,8 @@ const [{ default: app }, admin, student] = await Promise.all([
 
 if (!admin || !student) throw new Error('Phase 8 validation requires one active admin and student');
 await Promise.all([Class.init(), ReportCard.init(), Result.init()]);
-const adminToken = signAccessToken({ userId: admin._id, role: admin.role });
-const studentToken = signAccessToken({ userId: student._id, role: student.role });
+const adminToken = signAccessToken({ userId: admin._id, role: admin.role, tokenVersion: admin.refreshTokenVersion });
+const studentToken = signAccessToken({ userId: student._id, role: student.role, tokenVersion: student.refreshTokenVersion });
 const server = await new Promise((resolve) => {
   const instance = app.listen(0, '127.0.0.1', () => resolve(instance));
 });

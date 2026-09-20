@@ -1,20 +1,18 @@
 import { z } from 'zod';
 
 const createStudentSchema = z.object({
-  username: z.string().min(3).max(50).trim().toLowerCase(),
-  password: z.string().min(8).max(64),
   name: z.string().min(1).max(100).trim(),
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().max(20).optional(),
   admissionNo: z.string().min(1).max(30).trim(),
+  classId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid class ID'),
   rollNo: z.string().max(20).optional(),
-  section: z.string().max(10).optional(),
   dob: z.string().optional(), // ISO date string
   guardianName: z.string().max(100).optional(),
   guardianPhone: z.string().max(20).optional(),
   address: z.string().max(300).optional(),
   gender: z.enum(['male', 'female', 'other']).optional(),
-});
+}).strict();
 
 const createTeacherSchema = z.object({
   username: z.string().min(3).max(50).trim().toLowerCase(),

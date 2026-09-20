@@ -1,7 +1,11 @@
 import { createTimetableSchema } from './src/validators/timetable.validator.js';
 import { createReportCardSchema } from './src/validators/reportCard.validator.js';
 import { teacherCreateStudentSchema } from './src/validators/teacherPortal.validator.js';
-import { buildStudentCredentials } from './src/utils/studentCredentials.js';
+import { createStudentSchema } from './src/validators/user.validator.js';
+import { buildStudentCredentials, buildStudentPassword } from './src/utils/studentCredentials.js';
+import { changePasswordSchema } from './src/validators/auth.validator.js';
+import { listNoticesQuerySchema } from './src/validators/notice.validator.js';
+import { parsePagination } from './src/utils/paginationHelper.js';
 
 const objectId = '507f1f77bcf86cd799439011';
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -59,9 +63,44 @@ expectInvalid(teacherCreateStudentSchema.safeParse({
   password: 'ClientPassword123',
 }), 'Client-supplied student credentials');
 
+expectValid(createStudentSchema.safeParse({
+  name: 'Aarav Sharma',
+  admissionNo: 'SPS-1001',
+  classId: objectId,
+}), 'Admin student creation with selected class');
+expectInvalid(createStudentSchema.safeParse({
+  name: 'Aarav Sharma',
+  admissionNo: 'SPS-1001',
+}), 'Admin student creation without class');
+expectInvalid(createStudentSchema.safeParse({
+  name: 'Aarav Sharma',
+  admissionNo: 'SPS-1001',
+  classId: objectId,
+  username: 'client.supplied',
+  password: 'ClientPassword123',
+}), 'Admin client-supplied student credentials');
+
 const generatedCredentials = buildStudentCredentials('Aarav Sharma', '48291', '73014');
 if (generatedCredentials.username !== 'aarav.sharma.48291' || generatedCredentials.password !== 'AaravSharma73014') {
   throw new Error(`Generated student credentials have an unexpected shape: ${JSON.stringify(generatedCredentials)}`);
 }
+if (buildStudentPassword('Aarav Sharma', '84103') !== 'AaravSharma84103') {
+  throw new Error('Reset password generation must preserve the existing name-plus-five-digits policy');
+}
 
-console.log('Release validation passed: timetable, multipart report marks, and server-generated student credentials.');
+expectValid(changePasswordSchema.safeParse({ currentPassword: 'Initial123', newPassword: 'New51' }), 'Valid password change');
+expectInvalid(changePasswordSchema.safeParse({ currentPassword: 'Initial123', newPassword: 'newpw' }), 'Password without a number');
+expectInvalid(changePasswordSchema.safeParse({ currentPassword: 'Initial123', newPassword: 'N1a' }), 'Password shorter than five characters');
+expectInvalid(changePasswordSchema.safeParse({ currentPassword: 'Initial123', newPassword: 'Initial123' }), 'Password matching the current password');
+
+const noticeDeadlineSort = listNoticesQuerySchema.safeParse({ sortBy: 'deadline', sortOrder: 'asc' });
+expectValid(noticeDeadlineSort, 'Notice list compatibility with assignment deadline sort');
+const normalizedNoticePagination = parsePagination(
+  noticeDeadlineSort.data,
+  ['title', 'audienceType', 'status', 'publishedAt', 'createdAt'],
+);
+if (normalizedNoticePagination.sortBy !== 'createdAt') {
+  throw new Error(`Notice deadline sort should fall back to createdAt, received ${normalizedNoticePagination.sortBy}`);
+}
+
+console.log('Release validation passed: timetable, student onboarding, multipart report marks, generated/reset credentials, password-change rules, and notice sort compatibility.');

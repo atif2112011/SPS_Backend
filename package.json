@@ -15,7 +15,10 @@
     "test:teacher-app": "node test-teacher-app.mjs",
     "test:uploads": "node test-upload-limits.mjs",
     "test:release-validation": "node test-release-validation.mjs",
-    "migrate:results-to-assessments": "node scripts/migrate-results-to-assessments.mjs"
+    "test:admin-release": "node test-admin-release.mjs",
+    "test:admin-release:primary": "node test-admin-release.mjs --primary",
+    "migrate:results-to-assessments": "node scripts/migrate-results-to-assessments.mjs",
+    "migrate:first-password-change": "node scripts/migrate-first-password-change.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

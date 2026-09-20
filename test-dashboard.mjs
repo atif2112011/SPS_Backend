@@ -20,7 +20,7 @@ const [{ default: app }, student, admin] = await Promise.all([
 
 if (!student || !admin) throw new Error('Dashboard validation requires an active test student and admin');
 
-const token = signAccessToken({ userId: student._id, role: student.role });
+const token = signAccessToken({ userId: student._id, role: student.role, tokenVersion: student.refreshTokenVersion });
 const server = await new Promise((resolve) => {
   const instance = app.listen(0, '127.0.0.1', () => resolve(instance));
 });

@@ -15,6 +15,16 @@ const padBase = (value, fallback) => {
 
 const randomFiveDigits = () => String(randomInt(FIVE_DIGIT_MIN, FIVE_DIGIT_MAX_EXCLUSIVE));
 
+const buildStudentPassword = (name, passwordSuffix = randomFiveDigits()) => {
+  if (!/^\d{5}$/.test(passwordSuffix)) {
+    throw new Error('Credential suffixes must contain exactly five digits');
+  }
+
+  const normalizedName = asciiName(name);
+  const passwordBase = padBase(normalizedName.replace(/[^a-zA-Z0-9]/g, ''), 'Student').slice(0, 59);
+  return `${passwordBase}${passwordSuffix}`;
+};
+
 const buildStudentCredentials = (
   name,
   usernameSuffix = randomFiveDigits(),
@@ -29,13 +39,12 @@ const buildStudentCredentials = (
     normalizedName.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, ''),
     'student'
   ).slice(0, 44);
-  const passwordBase = padBase(normalizedName.replace(/[^a-zA-Z0-9]/g, ''), 'Student').slice(0, 59);
 
   return {
     username: `${usernameBase}.${usernameSuffix}`,
-    password: `${passwordBase}${passwordSuffix}`,
+    password: buildStudentPassword(name, passwordSuffix),
   };
 };
 
-export { buildStudentCredentials, randomFiveDigits };
+export { buildStudentCredentials, buildStudentPassword, randomFiveDigits };
 export default buildStudentCredentials;

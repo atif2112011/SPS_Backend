@@ -5,6 +5,7 @@ import { authenticate } from '../middlewares/auth.middleware.js';
 import { authorizeRole, authorizeOwner } from '../middlewares/rbac.middleware.js';
 import validate from '../middlewares/validate.middleware.js';
 import { updateStudentSchema, listUsersQuerySchema } from '../validators/user.validator.js';
+import { passwordResetRateLimit } from '../middlewares/passwordResetRateLimit.middleware.js';
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.delete('/:id', authorizeRole('admin'), userController.deleteUser);
 // Block/unblock — admin only
 router.post('/:id/block', authorizeRole('admin'), userController.blockUser);
 router.post('/:id/unblock', authorizeRole('admin'), userController.unblockUser);
+router.post('/:id/reset-password', authorizeRole('admin'), passwordResetRateLimit, userController.resetStudentPassword);
 
 export default router;

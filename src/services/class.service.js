@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Class from '../models/Class.model.js';
 import User from '../models/User.model.js';
 import StudentProfile from '../models/StudentProfile.model.js';
@@ -112,35 +113,44 @@ const deleteClass = async (classId) => {
  * studentIds: array of user ObjectId strings
  */
 const manageMembers = async (classId, action, studentIds) => {
-  const classDoc = await Class.findOne({ _id: classId, isDeleted: false });
-  if (!classDoc) throw appError('Class not found', 404, ERROR_CODES.NOT_FOUND);
+  const uniqueStudentIds = [...new Set(studentIds.map(String))];
+  const session = await mongoose.startSession();
+  let result;
+  try {
+    await session.withTransaction(async () => {
+      const classDoc = await Class.findOne({ _id: classId, isDeleted: false }).session(session);
+      if (!classDoc) throw appError('Class not found', 404, ERROR_CODES.NOT_FOUND);
 
-  // Validate all IDs are real students
-  const students = await User.find({ _id: { $in: studentIds }, role: 'student', status: { $ne: 'deleted' } });
-  if (students.length !== studentIds.length) {
-    throw appError('One or more student IDs are invalid', 400, ERROR_CODES.VALIDATION_ERROR);
+      const students = await User.find({ _id: { $in: uniqueStudentIds }, role: 'student', status: { $ne: 'deleted' } }).session(session);
+      if (students.length !== uniqueStudentIds.length) {
+        throw appError('One or more student IDs are invalid', 400, ERROR_CODES.VALIDATION_ERROR);
+      }
+
+      if (action === 'add') {
+        const currentIds = new Set(classDoc.studentIds.map((id) => id.toString()));
+        const newIds = uniqueStudentIds.filter((id) => !currentIds.has(id));
+        if (newIds.length > 0) {
+          await Class.updateMany(
+            { _id: { $ne: classId }, studentIds: { $in: newIds }, isDeleted: false },
+            { $pull: { studentIds: { $in: newIds } } },
+            { session }
+          );
+          classDoc.studentIds.push(...newIds);
+          await StudentProfile.updateMany({ userId: { $in: newIds } }, { classId }, { session });
+        }
+      } else {
+        const removedIds = new Set(uniqueStudentIds);
+        classDoc.studentIds = classDoc.studentIds.filter((id) => !removedIds.has(id.toString()));
+        await StudentProfile.updateMany({ userId: { $in: uniqueStudentIds }, classId }, { classId: null }, { session });
+      }
+
+      await classDoc.save({ session });
+      result = classDoc;
+    });
+    return result;
+  } finally {
+    await session.endSession();
   }
-
-  if (action === 'add') {
-    // Filter already-in-class to avoid duplicates
-    const newIds = studentIds.filter(id => !classDoc.studentIds.map(s => s.toString()).includes(id.toString()));
-    if (newIds.length > 0) {
-      await Class.updateMany(
-        { _id: { $ne: classId }, studentIds: { $in: newIds }, isDeleted: false },
-        { $pull: { studentIds: { $in: newIds } } }
-      );
-    }
-    classDoc.studentIds.push(...newIds);
-    // Update each student's classId in their profile
-    await StudentProfile.updateMany({ userId: { $in: newIds } }, { classId });
-  } else if (action === 'remove') {
-    classDoc.studentIds = classDoc.studentIds.filter(id => !studentIds.includes(id.toString()));
-    // Unlink from class in profiles
-    await StudentProfile.updateMany({ userId: { $in: studentIds }, classId }, { classId: null });
-  }
-
-  await classDoc.save();
-  return classDoc;
 };
 
 /**
@@ -148,30 +158,48 @@ const manageMembers = async (classId, action, studentIds) => {
  * Removes old teacher assignment first.
  */
 const assignTeacher = async (classId, teacherId) => {
-  const classDoc = await Class.findOne({ _id: classId, isDeleted: false });
-  if (!classDoc) throw appError('Class not found', 404, ERROR_CODES.NOT_FOUND);
+  const session = await mongoose.startSession();
+  let result;
+  try {
+    await session.withTransaction(async () => {
+      const classDoc = await Class.findOne({ _id: classId, isDeleted: false }).session(session);
+      if (!classDoc) throw appError('Class not found', 404, ERROR_CODES.NOT_FOUND);
 
-  const teacher = await User.findOne({ _id: teacherId, role: 'teacher', status: 'active' });
-  if (!teacher) throw appError('Teacher not found', 404, ERROR_CODES.NOT_FOUND);
+      const teacher = await User.findOne({ _id: teacherId, role: 'teacher', status: 'active' }).session(session);
+      if (!teacher) throw appError('Teacher not found', 404, ERROR_CODES.NOT_FOUND);
 
-  const teacherProfile = await TeacherProfile.findOne({ userId: teacherId });
-  if (!teacherProfile) throw appError('Teacher profile not found', 404, ERROR_CODES.NOT_FOUND);
+      const teacherProfile = await TeacherProfile.findOne({ userId: teacherId }).session(session);
+      if (!teacherProfile) throw appError('Teacher profile not found', 404, ERROR_CODES.NOT_FOUND);
 
-  // Remove previous teacher's class assignment if different
-  if (classDoc.classTeacherId && classDoc.classTeacherId.toString() !== teacherId.toString()) {
-    await TeacherProfile.findOneAndUpdate({ userId: classDoc.classTeacherId }, { assignedClassId: null });
+      if (classDoc.classTeacherId && classDoc.classTeacherId.toString() !== teacherId.toString()) {
+        await TeacherProfile.findOneAndUpdate(
+          { userId: classDoc.classTeacherId },
+          { assignedClassId: null },
+          { session }
+        );
+      }
+
+      if (teacherProfile.assignedClassId && teacherProfile.assignedClassId.toString() !== classId.toString()) {
+        await Class.findByIdAndUpdate(
+          teacherProfile.assignedClassId,
+          { classTeacherId: null },
+          { runValidators: true, session }
+        );
+      }
+
+      classDoc.classTeacherId = teacherId;
+      await classDoc.save({ session });
+      await TeacherProfile.findOneAndUpdate(
+        { userId: teacherId },
+        { assignedClassId: classId },
+        { runValidators: true, session }
+      );
+      result = classDoc;
+    });
+    return result;
+  } finally {
+    await session.endSession();
   }
-
-  if (teacherProfile.assignedClassId && teacherProfile.assignedClassId.toString() !== classId.toString()) {
-    await Class.findByIdAndUpdate(teacherProfile.assignedClassId, { classTeacherId: null }, { runValidators: true });
-  }
-
-  classDoc.classTeacherId = teacherId;
-  await classDoc.save();
-
-  await TeacherProfile.findOneAndUpdate({ userId: teacherId }, { assignedClassId: classId }, { runValidators: true });
-
-  return classDoc;
 };
 
 /**

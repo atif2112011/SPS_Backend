@@ -85,6 +85,16 @@ const unblockStudent = asyncWrapper(async (req, res) => {
   sendSuccess(res, { message: 'Student account unblocked', data: user });
 });
 
+const resetStudentPassword = asyncWrapper(async (req, res) => {
+  const credentials = await teacherPortalService.resetStudentPassword(req.user.userId, req.params.studentId);
+  res.set('Cache-Control', 'no-store');
+  await activity(req, {
+    targetId: credentials.studentId, targetName: credentials.studentName, targetRole: 'student',
+    actionType: 'RESET_STUDENT_PASSWORD', entityType: 'User', entityId: credentials.studentId,
+  });
+  sendSuccess(res, { message: 'Student password reset successfully', data: credentials });
+});
+
 const getTransferDestinations = asyncWrapper(async (req, res) => {
   const destinations = await teacherPortalService.getTransferDestinations(req.user.userId);
   sendSuccess(res, { message: 'Transfer destinations fetched', data: destinations });
@@ -141,5 +151,5 @@ const cancelTransfer = asyncWrapper(async (req, res) => {
 export default {
   approveTransfer, blockStudent, cancelTransfer, createStudent, getClass, getDashboard, getStudent,
   getTransferDestinations, getTransferRequest, listStudents, listTeacherDirectory, listTransferRequests, rejectTransfer,
-  removeStudent, requestTransfer, unblockStudent, updateStudent,
+  removeStudent, requestTransfer, resetStudentPassword, unblockStudent, updateStudent,
 };

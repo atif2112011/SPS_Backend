@@ -76,11 +76,11 @@ const getMe = asyncWrapper(async (req, res) => {
 
 const changePassword = asyncWrapper(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  await authService.changePassword(req.user.userId, currentPassword, newPassword);
+  const result = await authService.changePassword(req.user.userId, currentPassword, newPassword);
 
   clearRefreshCookie(res);
 
-  sendSuccess(res, { message: 'Password changed successfully. Please log in again.' });
+  sendSuccess(res, { message: 'Password changed successfully. Please log in again.', data: result });
 });
 
 export { login, refresh, logout, getMe, changePassword };

@@ -7,6 +7,7 @@ import {
   teacherCreateStudentSchema, teacherStudentListQuerySchema, teacherUpdateStudentSchema,
   transferDecisionSchema, transferListQuerySchema, transferRequestSchema,
 } from '../validators/teacherPortal.validator.js';
+import { passwordResetRateLimit } from '../middlewares/passwordResetRateLimit.middleware.js';
 
 const { Router } = express;
 const router = Router();
@@ -24,6 +25,7 @@ router.patch('/class/students/:studentId', validate(teacherUpdateStudentSchema),
 router.delete('/class/students/:studentId', teacherPortalController.removeStudent);
 router.post('/class/students/:studentId/block', teacherPortalController.blockStudent);
 router.post('/class/students/:studentId/unblock', teacherPortalController.unblockStudent);
+router.post('/class/students/:studentId/reset-password', passwordResetRateLimit, teacherPortalController.resetStudentPassword);
 router.post('/class/students/:studentId/transfer', validate(transferRequestSchema), teacherPortalController.requestTransfer);
 
 router.get('/transfer-requests', validate(transferListQuerySchema, 'query'), teacherPortalController.listTransferRequests);

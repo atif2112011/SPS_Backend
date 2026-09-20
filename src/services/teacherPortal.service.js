@@ -13,6 +13,7 @@ import { buildStudentCredentials } from '../utils/studentCredentials.js';
 import { buildPaginationMeta, buildSearchRegex, parsePagination } from '../utils/paginationHelper.js';
 import ERROR_CODES from '../constants/errorCodes.js';
 import { assertStudentBelongsToTeacher, getTeacherContext } from './teacherContext.service.js';
+import { resetStudentPassword as resetPassword } from './studentPassword.service.js';
 
 const appError = (message, statusCode, errorCode) => {
   const err = new Error(message);
@@ -94,6 +95,7 @@ const createStudent = async (teacherId, data) => {
         name: data.name,
         phone: data.phone,
         status: 'active',
+        firstPasswordChange: false,
       }], { session });
 
       const [profile] = await StudentProfile.create([{
@@ -257,6 +259,11 @@ const setStudentBlocked = async (teacherId, studentId, blocked) => {
     );
   }
   return user;
+};
+
+const resetStudentPassword = async (teacherId, studentId) => {
+  await assertStudentBelongsToTeacher(studentId, teacherId);
+  return resetPassword(studentId);
 };
 
 const removeStudent = async (teacherId, studentId) => {
@@ -559,11 +566,11 @@ const getDashboard = async (teacherId) => {
 export {
   approveTransfer, cancelTransfer, createStudent, getDashboard, getStudent, getTransferDestinations,
   getTransferRequest, listStudents, listTeacherDirectory, listTransferRequests, rejectTransfer, removeStudent,
-  requestTransfer, setStudentBlocked, updateStudent,
+  requestTransfer, resetStudentPassword, setStudentBlocked, updateStudent,
 };
 
 export default {
   approveTransfer, cancelTransfer, createStudent, getDashboard, getStudent, getTransferDestinations,
   getTransferRequest, listStudents, listTeacherDirectory, listTransferRequests, rejectTransfer, removeStudent,
-  requestTransfer, setStudentBlocked, updateStudent,
+  requestTransfer, resetStudentPassword, setStudentBlocked, updateStudent,
 };
